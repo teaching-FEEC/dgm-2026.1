@@ -11,7 +11,7 @@ This project originated in the context of the graduate course _IA376N - Generati
 
 > |Name | RA | Specialization|
 > |--|--|--|
-> | Patrícia P. Giordano | 971352 | Electrical Engineering|
+> | Patrícia P. Giordano | 971352 | Computer Engineering|
 > | Gabriel Morais Alves | 323616 | Computer Engineering|
 > | Silvia A. P. Olivio | 224932 | Electrical Engineering|
 
@@ -70,7 +70,7 @@ The main hypothesis of this project is that the inability of text-to-image model
 - 1 (To what extent do training data influence the model's response to a user's request when the requested attributes are unconventional?)
 - 2 (Can fine-tuning data improve the model’s ability to correctly apply attributes?)
 
-# Expected Output of the generative model.
+# Expected Output of the Generative Model.
 The output of the generative model in this project will consist of images generated from '"""""""controlled"""""""" textual prompts, with a specific focus on attribute manipulation, especially color.
 
 In the initial state (pre-trained model), the system is expected to generate images influenced by learned statistical patterns, often failing to correctly apply uncommon attributes specified in the prompt.
@@ -82,7 +82,7 @@ In particular, the improved model should be able to:
 
 - Correctly apply specified attributes, such as color, to objects, even when they contradict common real-world representations
 - (Correctly apply specified attributes to objects, such as color, even when they contradict common real-world representations,)
-- Não: Reduce bias toward dominant patterns learned during pre-training
+- Cuidado: Reduce bias toward dominant patterns learned during pre-training
 - Generate images that are more consistent with the input prompt
 
 > # Include in this section a link to the presentation video of the project proposal (maximum 5 minutes).
@@ -104,10 +104,21 @@ The following methods are considered within the scope of this project:
 
 **If the fine-tuned dataset does not yield satisfactory results and sufficient time is available, VAE-based models may be explored, with a focus on analyzing attribute disentanglement. However, this step is considered optional and may be addressed as future work, depending on time constraints and overall project scope.**
 
-## Reference articles already identified and that will be studied or used as part of the project planning. 
-https://arxiv.org/pdf/2112.10752 - Treinamento do difusion 
-https://arxiv.org/pdf/2006.11239 - Denoising Diffusion Probabilistic Models
-https://arxiv.org/pdf/2112.10741 - GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models
+## Reference articles already identified and that will be studied or used as part of the project planning.
+
+- Rombach, R. et al. (2021). “High-Resolution Image Synthesis with Latent Diffusion
+Models”. Em: CoRR abs/2112.10752. url: https://arxiv.org/abs/2112.10752 (ver p. 20).
+
+- Ho, J., A. Jain e P. Abbeel (2020). “Denoising Diffusion Probabilistic Models”. Em: CoRR
+abs/2006.11239. url: https://arxiv.org/abs/2006.11239 (ver p. 20).
+
+- Nichol, A. et al. (2021). “GLIDE: Towards Photorealistic Image Generation and Editing
+with Text-Guided Diffusion Models”. Em: CoRR abs/2112.10741. url: https://arxiv.org/abs/2112.10741 (ver p. 20).
+
+
+- https://arxiv.org/pdf/2112.10752 - Treinamento do difusion 
+- https://arxiv.org/pdf/2006.11239 - Denoising Diffusion Probabilistic Models
+- https://arxiv.org/pdf/2112.10741 - GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models
 
 ## Tools to be used (based on the group’s current vision of the project).
 - Python
