@@ -130,4 +130,4 @@ The following schedule is proposed for each stage of the project:
 
 ## Bibliographic References
 
-> Point out in this section the bibliographic references adopted in the project.
+- Vice, J., Akhtar, N., Sigal, L. et al. On the fairness, diversity and reliability of text-to-image generative models. Artif Intell Rev 59, 57 (2026). https://doi.org/10.1007/s10462-025-11424-2
