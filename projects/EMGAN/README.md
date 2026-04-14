@@ -19,7 +19,7 @@ Surface Electromyography (sEMG) signals of articulatory muscles reflect the spee
 
 To address the issues of data acquisition and aid in the development of robust SSIs, we propose a method of generating synthetic EMG signals based on the STE-GAN architecture [2]. The main goal of this project is to generate reliable EMG data from acoustic speech that is not only similar to the target domain, but also capable of retaining high linguistic accuracy (e.g., maintaining a low Word Error Rate) after being converted back to audio.
 
-The generator outputs a C-channel EMG signal. Therefore, the output of the generative model will be multi-channel EMG signals of the exact same dimension as the target input data.
+The generator outputs a C-channel EMG signal. Therefore, the output of the generative model will be a multi-channel EMG signal of the exact same dimension as the target input data.
 
 [PRESENTATION LINK](https://docs.google.com/presentation/d/1RQUPtrMktuhXLVYFDq8A5LLMe22JyeH8VmcdLbCdixM/edit?usp=sharing)
 
