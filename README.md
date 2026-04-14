@@ -18,7 +18,7 @@ Link to the presentation slides: https://canva.link/a1xy936n5saa099
 
 This project aims to evaluate the behavior of text-to-image generative AI models, focusing on their ability to correctly interpret simple textual descriptions. The rapid advancement of generative models has enabled high-quality image synthesis from text; however, these models often exhibit limitations related to diversity, fairness, and reliability.
 
-The main goal of this project is to investigate how pre-trained open-source models, such as Stable Diffusion, available through platforms like Hugging Face, handle prompts where there is a potential 'limitation' between the user’s input and the statistical patterns learned during training.The project is motivated by the observation that these models frequently fail to correctly apply specific attributes—such as color—to objects. For example, prompts such as:
+The main goal of this project is to investigate how pre-trained open-source models, such as Stable Diffusion, available through platforms like Hugging Face, handle prompts where there is a potential 'limitation' between the user’s input and the statistical patterns learned during training. The project is motivated by the observation that these models frequently fail to correctly apply specific attributes—such as color—to objects. For example, prompts such as:
 - “white carrot”,
 - “pink classroom blackboard” and
 - “purple polar bear”.
