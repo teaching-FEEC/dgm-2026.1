@@ -8,6 +8,7 @@
 
 This project originated in the context of the graduate course _IA376N - Generative AI: from models to multimodal applications_, offered in the first semester of 2026, at Unicamp, under the supervision of Prof. Dr. Paula Dornhofer Paro Costa, from the Department of Computer and Automation Engineering (DCA) of the School of Electrical and Computer Engineering (FEEC).
 
+Link to the presentation slides: https://canva.link/a1xy936n5saa099
 
 > |Name | RA | Specialization|
 > |--|--|--|
