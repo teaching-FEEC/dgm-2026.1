@@ -12,7 +12,7 @@ offered in the first semester of 2026, at Unicamp, under the supervision of Prof
 > |Name | RA | Specialization|
 > |--|--|--|
 > | Adriel Bombonato | 291654 | Electrical Engineering|
-> | Hasnat Hameed | 270284 | Electrical Engineering|
+> | Hasnat Hameed | 270284 | Civil Engineering|
 > | Name3 | 123456 | XXX|
 
 ## Project Summary Description
