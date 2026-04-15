@@ -76,3 +76,20 @@ HIGO, Kazuki, et al. TerraFusion: Joint Generation of Terrain Geometry and Textu
 WANG, Zhengren. 3d representation methods: A survey. arXiv preprint arXiv:2410.06475, 2024. Available at: https://arxiv.org/abs/2410.06475
 
 TANG, Xiang; LI, Ruotong; FAN, Xiaopeng. Recent Advances in 3D Object and Scene Generation: A Survey. arXiv preprint arXiv:2504.11734, 2025. Available at: https://arxiv.org/abs/2504.11734
+R. Fan, X. Ai, N. Dahnoun, and D. Worrall, “Rethinking Road Surface 3D Reconstruction and Pothole Detection,” arXiv:2012.10802, 2020.
+
+X. Huang et al., “SPAR3D: Stable Point-Aware Reconstruction of 3D Objects from Single Images,” Proc. IEEE/CVF CVPR, 2025.
+
+R. Ranftl et al., “Towards Robust Monocular Depth Estimation: Mixing Datasets for Zero-Shot Cross-Dataset Transfer,” IEEE TPAMI, 2022.
+
+R. Ranftl, A. Bochkovskiy, and V. Koltun, “Vision Transformers for Dense Prediction,” Proc. IEEE/CVF ICCV, 2021.
+
+Z. Li and N. Snavely, “MegaDepth: Learning Single-View Depth Prediction from Internet Photos,” Proc. IEEE/CVF CVPR, 2018.
+
+A. Geiger, P. Lenz, and R. Urtasun, “Are We Ready for Autonomous Driving? The KITTI Vision Benchmark Suite,” Proc. IEEE/CVF CVPR, 2012.
+
+M. Yurdakul and Ş. Taşdemir, “An Enhanced YOLOv8 Model for Real-Time and Accurate Pothole Detection and Measurement,” arXiv:2505.04207, 2025.
+
+Q.-Y. Zhou, J. Park, and V. Koltun, “Open3D: A Modern Library for 3D Data Processing,” 2018.
+
+A. Paszke et al., “PyTorch: An Imperative Style, High-Performance Deep Learning Library,” NeurIPS, 2019.
