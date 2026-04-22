@@ -1,4 +1,4 @@
-# 2026.1 IA376N - Project - Final Submission (E3)
+# 2026.1 IA376N - Project - Final Submission (D3)
 
 ## General Instructions
 
