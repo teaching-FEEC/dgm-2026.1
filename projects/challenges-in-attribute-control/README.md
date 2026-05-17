@@ -121,20 +121,22 @@ No transformations and cleaning were done up to now due to the fact that the exp
 
 ### Workflow
 
-### Experimento 1 - Viés no dataset
+### Experiment 1 - Viés no dataset
 ![Resultado do experimento](imagens/flow_experimento1_dataset.png)
 
-### Experimento 2 - Embeddings do CLIP
+### Experiment 2 - Embeddings do CLIP
 ![Resultado do experimento](imagens/flow_experimento2_clip.png)
 
-### Experimento 3 - Cross-attention mechanism
+### Experiment 3 - Cross-attention mechanism
 
 
 ## Experiments, results and discussion of results
 
-### Experimento 1 - Viés no dataset
+### Experiment 1 - Viés no dataset
 
-### Experimento 2 - Embeddings do CLIP
+### Experiment 2 - Embeddings do CLIP
+
+### Experiment 3 - Cross-attention mechanism
 
 ## Conclusion
 By analyzing the results from our experiments, we concluded that the problem of attribute binding on diffusion models, in this case Stable Diffusion, comes from different components of the architecture instead of having just one responsible. The way the training dataset was generated, the problem of embedding representation on CLIP and the cross-attention mechanism failing to pay attention on certain attributes combined makes this an intrinsic problem of this architecture.
