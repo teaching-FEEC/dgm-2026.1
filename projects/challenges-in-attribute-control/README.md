@@ -110,6 +110,8 @@ No transformations and cleaning were done up to now due to the fact that the exp
 | Number with height or width ≥ 256 | 268M |
 
 ### Conceptual Captions
+| Dataset       | Quantity       |
+| ------------- | ----------------- |
 | Train | 3.3M |
 | Validation | 28K |
 | Test | 22.5K |
