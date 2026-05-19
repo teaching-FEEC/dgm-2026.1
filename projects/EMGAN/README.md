@@ -86,6 +86,7 @@ No transformations were applied up to now, except for the main dataset [4], whic
 This dataset uses only one subject and 6 channels, which were placed in the following muscles:
 
 | | Location | Estimated muscle(s) |
+| :--- | :--- | :--- |
 | 1 | left cheek just above mouth | Zygomaticus major, w/possible crosstalk with Zygomaticus minor |
 | 2 | left corner of chin | Depressor anguli oris |
 | 3 | below chin back 3 cm | Sternohyoid |
