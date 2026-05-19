@@ -30,7 +30,9 @@ Presentation Link [here](https://docs.google.com/presentation/d/1CM4DDgOnC9EBGzu
 
 ## Methodology
 
-Training deep generative models for 3D reconstruction requires substantial amounts of paired 2D-3D data, which is notoriously scarce in the pavement inspection domain. To overcome this limitation, we propose a dual-dataset strategy utilizing PothRGBD and Rui Fan's Stereo Pothole Dataset:
+### 1. Hypothesis 
+Our central hypothesis is that a generative 3D model (Point-E) can successfully reconstruct the topology of a pothole from a single monocular RGB image, enabling practical severity assessment (depth/volume) without requiring perfect metrological-grade stereo setups during inference.
+Operationally, we test the following:
 - [PothRGBD Dataset](https://www.kaggle.com/datasets/mahyeks/pothrgbd-rgb-and-depth-images-of-potholes): This dataset provides 1.000 paired RGB and Depth (2.5D) images captured via an Intel RealSense camera. Utilizing the camera's intrinsic parameters, we will perform algebraic back-projection to convert these depth maps into 3D point clouds. This will serve as our primary dataset for fine-tuning the model, providing the necessary volume to learn the general distribution of road anomalies.
 - [Rui Fan's Stereo Pothole Dataset](https://github.com/ruirangerfan/rethinking_road_reconstruction_pothole_detection): This repository contains 79 instances with high-precision 3D ground truth. The ground truth was uniquely acquired by casting physical gypsum molds inside real road potholes and subsequently scanning them with a high-precision 3D laser (achieving an RMSE of 2.23 mm). Due to its limited size but absolute structural fidelity, this dataset will be strictly reserved as our gold-standard test set for the final geometric evaluation.
 
