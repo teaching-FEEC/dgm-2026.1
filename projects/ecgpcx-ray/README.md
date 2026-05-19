@@ -422,7 +422,20 @@ In total, **9,425 original images** and **9,425 counterfactual images** were eva
 
 **Counterfactual image generation examples**
 
+![CVAE Counterfactual examples](training-results\cvae\results\generation_examples.png)
+
+The figure above shows 4 example pairs for each translation direction. Blue borders denote real (input) images while red borders denote generated counteerfactual (output) images.
+
+The generated examples preserve the main anatomical layout of the input X-rays, including the lung fields, rib cage, and cardiac silhouette. The changes introduced by the CVAE are subtle, which is desirable for counterfactual explanations, but the generated outputs are also smoother than the original images. This suggests that the model is capturing global structure more strongly than fine radiological texture, losing the sharpness of the images and making it difficult to identify aspects like bones or artifacts in the images.
+
 **Counterfactual change heatmaps**
+
+![CVAE Change Heatmap](training-results\cvae\results\cvae_change_heatmap_008.png)
+
+The heatmaps show the absolute pixel-level differences between each original image and its generated counterfactual. Brighter regions indicate where the CVAE changed the image more strongly.
+
+The changes are not uniformly distributed across the full image, which supports the counterfactual goal of localized modifications rather than arbitrary global shifts. However, some highlighted regions are diffuse and may include areas outside the most clinically relevant lung regions, so these maps should still be interpreted as qualitative evidence and compared with classifier-based explanations in future experiments.
+
 
 ### 2.5 Quantitative Evaluation
 
@@ -454,6 +467,8 @@ The CVAE provides a stable and interpretable baseline for conditional counterfac
 Compared with adversarial models, the CVAE is easier to train and less sensitive to instability. This makes it useful as a first generative baseline for the project. However, the visual results also show the expected limitation of VAE-based models: generated images tend to be smoother and less detailed, which may reduce their clinical realism.
 
 The high SSIM suggests that the CVAE preserves anatomical structure reasonably well, but the FID score indicates that realism remains limited. This motivates the comparison with CycleGAN, which is expected to generate sharper images due to adversarial training, although with a higher risk of artifacts and training instability.
+
+The qualitative examples and heatmaps reinforce this interpretation. The generated image pairs show that the CVAE mostly keeps the global chest anatomy stable while applying subtle counterfactual changes, which is aligned with the explanation goal. However, the heatmaps also show that some modifications are diffuse or occur outside the most relevant lung regions. This means the current counterfactuals are useful for visual inspection, but they should not yet be interpreted as clinically reliable disease localization.
 
 Main limitations observed in the CVAE experiment include:
 
