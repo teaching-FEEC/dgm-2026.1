@@ -30,11 +30,16 @@ Presentation Link [here](https://docs.google.com/presentation/d/1CM4DDgOnC9EBGzu
 
 ## Methodology
 
-### 1. Hypothesis 
-Our central hypothesis is that a generative 3D model (Point-E) can successfully reconstruct the topology of a pothole from a single monocular RGB image, enabling practical severity assessment (depth/volume) without requiring perfect metrological-grade stereo setups during inference.
-Operationally, we test the following:
-- [PothRGBD Dataset](https://www.kaggle.com/datasets/mahyeks/pothrgbd-rgb-and-depth-images-of-potholes): This dataset provides 1.000 paired RGB and Depth (2.5D) images captured via an Intel RealSense camera. Utilizing the camera's intrinsic parameters, we will perform algebraic back-projection to convert these depth maps into 3D point clouds. This will serve as our primary dataset for fine-tuning the model, providing the necessary volume to learn the general distribution of road anomalies.
-- [Rui Fan's Stereo Pothole Dataset](https://github.com/ruirangerfan/rethinking_road_reconstruction_pothole_detection): This repository contains 79 instances with high-precision 3D ground truth. The ground truth was uniquely acquired by casting physical gypsum molds inside real road potholes and subsequently scanning them with a high-precision 3D laser (achieving an RMSE of 2.23 mm). Due to its limited size but absolute structural fidelity, this dataset will be strictly reserved as our gold-standard test set for the final geometric evaluation.
+> ### 1. Hypothesis 
+> Our central hypothesis is that a generative 3D model (Point-E) can successfully reconstruct the topology of a pothole from a single monocular RGB image, enabling practical severity assessment (depth/volume) without requiring perfect metrological-grade stereo setups during inference. Operationally, we test the following:
+- **Latent Space Scaling:** Feeding carefully padded square crops to a Generative Point Cloud diffusion model allows the extraction of 3D geometry whilst maintaining physical proportions intact.
+- **Robustness via RANSAC:** Applying geometric leveling over training data guarantees that the generative model learns pure depth (the crater) without being biased by camera pitch or road inclination.
+***Scope note:***
+- The project prioritizes practical utility, relative severity ranking, and successful architectural pipeline adaptation, rather than sub-millimeter full mesh reconstruction.
+
+### 2. Geometric Core and Data Standardization Geometric Leveling (RANSAC)
+> Unlike early assumptions that treated the road as a flat plane parallel to the camera by calculating simple depth medians, we implemented a robust mathematical leveling algorithm. We project the real road pixels into 3D space and use RANSAC (Random Sample Consensus) to find the exact equation of the asphalt plane. By subtracting this plane from the raw depth, we isolate purely the pothole's cavity ($z=0$ at street level), completely neutralizing camera tilt and road slope.
+
 
 Generative Modeling Approaches to be Studied This project will focus on 3D Diffusion Models operating directly on point clouds. Unlike traditional methods that rely on voxelization, which inherently destroys the sharp edges and fine-grained textures characteristic of asphalt degradation, we will explore transformer-based point diffusion architectures, such as the [Diffusion Point Transformer (DiPT)](https://github.com/matteo-bastico/DiffusionPointTransformer) or [Point-E](https://github.com/openai/point-e).
 
