@@ -82,17 +82,44 @@ Evaluating generated 3D point clouds of strictly concave surfaces requires speci
 > |**PothRGDB** | Research Repository | Provides 1,000 paired RGB and depth (2.5D) images with YOLO annotations captured using an Intel RealSense camera as the primary dataset.|
 > |**Rui Fan's Stereo Pothole** | Research Repository | Contains 79 pothole instances with high-precision 3D ground truth obtained from laser-scanned gypsum molds|
 
-> Provide a description of what you concluded about this dataset. Suggested guiding questions or information to include:
-> - What is the dataset format, size, type of annotation?
-> - What transformations and preprocessing were done? Cleaning, re-annotation, etc.
-> - Include a summary with descriptive statistics of the dataset(s).
-> - Use tables and/or charts to describe the main aspects of the dataset that are relevant to the project.
+> #### Analysis and Preprocessing
+> - **PothRGDB (Primary Training & Tuning):** Utilizing the camera's intrinsic parameters, we mapped algebraic back-projection to convert depth maps into 3D point clouds. An Exploratory Data Analysis (EDA) on 998 unique samples revealed that while the central tendency indicates moderate potholes (median volume ~4.5L, median max-depth ~72mm), the dataset occasionally suffers from extreme physical sensor artifacts. Over 100 samples were flagged as implausible outliers (e.g., reported depths > 5000mm) typically caused by water reflections and harsh shadows. To prevent corrupt learning, applying log-scale IQR outlier thresholds is essential to curate the training data. This dataset provides the necessary volume to learn the general distribution of road anomalies.
+> - **Rui Fan's Dataset (Testing & Validation):** Due to its limited size (79 samples) but absolute structural fidelity (achieving an RMSE of 2.23 mm), this dataset is incredibly valuable. It will be strictly reserved as an independent gold-standard test set for the final geometric evaluation to prove the pipeline's capabilities.
 
-### Workflow
+### Architectural Design and Use Case Alignment
+#### Two-Stage Inference Pipeline
+> To ensure inputs match constraints correctly when deployed, the architecture assumes a Two-Stage Pipeline for final end-user inference:
+> 1. 2D Segmentation & Cropping: The pothole must be isolated from the surrounding environment. While we use YOLO bounding boxes to automate this during training, an end-user could utilize any segmenter (e.g., SAM) or even manual cropping. The essential preprocessing forces the bounding box into a square aspect ratio plus a margin, padding missing visual data with black pixels so the real physical scale remains untouched before reaching our generative stage.
+> 2.  Generative 3D Reconstruction (2D->3D): Our core model (Point-E) receives the square RGB crop and outputs a point cloud (1024 points). Using saved scale factors, this generic 3D output is re-upscaled directly into real-world topological dimensions to measure depth and severity.
 
-> Use a tool that allows you to design the workflow and save it as an image (e.g., Draw.io). Insert the image in this section.
-> You may choose to use a workflow manager (Sacred, Pachyderm, etc.), in which case use the manager to generate a diagram for you.
-> Remember that the goal of drawing the workflow is to help anyone who wishes to reproduce your experiments.
+#### Visual Quality Control (Gold Standard Curation)
+> Physically captured depth (RealSense) systematically fails (returning spikes, 0, or NaN) in extreme cases like puddles of water reflecting IR beams or harsh sun shadows causing stereo occlusion. Pushing these raw physical sensor failures to a Generative Model causes it to learn corrupt geometry ("Garbage In, Garbage Out"). To mitigate this, we manually review and filter out these problematic extreme artifacts, ensuring we curate a clean, high-fidelity "Gold Standard" subset for training and geometric evaluation.
+
+#### Use Case Realignment
+> The project focuses on Infrastructure Auditing and Crowdsourcing (e.g., civic reporting via smartphone, slow-moving municipal fleet cameras). It does not target high-speed autonomous driving avoidance, simplifying constraints related to real-time processing and dynamic perspective shifts.
+
+### Sensitivity Protocol (Intrinsics Robustness)
+> To quantify the effect of unknown calibration without imposing massive computational overhead, we will conduct a post-inference intrinsics sensitivity analysis.
+> - Scenario A (Nominal): baseline intrinsics for D415.
+> - Scenario B: focal lengths (fx, fy) shifted by +/- 5% during metric calculation.
+> - Scenario C: focal lengths (fx, fy) shifted by +/- 10% during metric calculation.
+> By computing the variance of the severity metrics across scenarios, we establish the robustness of the ranking criteria independently from the exact factory calibration.
+
+### Reporting Without Overclaim
+> Use conservative language.
+> What can be claimed:
+> - The successful architectural adaptation of a 3D foundational model (Point-E) for civic infrastructure usage.
+> - Pipeline robustness and geometric stability against imperfect sensor angles.
+> What should be avoided:
+> - Claims of absolute sub-millimeter precision matching LIDAR scans.
+
+### Evaluation Framework
+#### Geometric Fidelity (Point Cloud Similarity)
+> Because downstream classification baselines have been scoped out, our evaluation focuses entirely on the topological accuracy of the Generative Model itself.
+To ensure the model accurately recreates the exact spatial geometry, we calculate point cloud regression metrics on a strictly filtered validation set (clean, dry samples curated by our top-down pipeline).
+> - **Primary Metric:** Chamfer Distance (measuring the mean distance between the generated 1024 points and the ground truth 1024 points extracted by the sensor).
+> - **Secondary Metric:** RMSE for max depth extracted from both clouds.
+> By comparing these metrics after scaling the generated data back to its physical limits (using the recorded metadata), we validate the generative fidelity of the pipeline.
 
 ## Experiments, Results, and Discussion of Results
 
