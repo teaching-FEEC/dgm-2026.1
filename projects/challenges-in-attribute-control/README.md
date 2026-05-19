@@ -218,6 +218,26 @@ In contrast, the rare combination blue banana obtained:
 
 This difference suggests that the model achieved a stronger association between the color and the object in the common combination than in the rare one. In this specific comparison, the lower binding score for blue banana is compatible with the hypothesis that rare or statistically uncommon attribute-object combinations may be harder for the model to represent correctly.
 
+The binding visualization provides additional qualitative support for this result. In the rare combination blue banana, the generated image does not show a clearly blue banana; instead, the object appears mostly pale or greenish, despite the prompt explicitly requesting a blue banana.
+
+![Generated image and metadata for the blue banana prompt](imagens/Blue_Banana_Image.jpg)
+
+The cross-attention map for the object token banana is spatially concentrated around the generated object, suggesting that the model was able to localize the banana in the image.
+
+![Cross-attention map for the token banana](imagens/blue_banana_cross_attention_banana.png)
+
+In contrast, the cross-attention map for the color token `blue` appears more diffuse and less concentrated on the banana region. This suggests that, although the token blue was present in the prompt and produced an attention map, it was not associated as strongly or as consistently with the spatial region corresponding to the banana.
+
+![Cross-attention map for the token blue](imagens/blue_banana_cross_attention_blue.png)
+
+This interpretation is also supported by the comparison with the common combination yellow banana. In this case, the generated image depicts a clearly yellow banana, and the attention map for the token yellow overlaps more visibly with the object region.
+
+![Cross-attention map for the token yellow in the yellow banana prompt](imagens/yellow_banana_cross_attention_yellow.png)
+
+Quantitatively, this difference is reflected in the binding scores summarized below. The common combination yellow banana obtained a higher binding score than the rare combination blue banana:
+![Generated image and metadata for the blue banana prompt](imagens/binding.jpg)
+
+
 ## Conclusion
 By analyzing the results from our experiments, we concluded that the problem of attribute binding on diffusion models, in this case Stable Diffusion, comes from different components of the architecture instead of having just one responsible. The way the training dataset was generated, the problem of embedding representation on CLIP and the cross-attention mechanism failing to pay attention on certain attributes combined makes this an intrinsic problem of this architecture.
 
