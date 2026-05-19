@@ -2,7 +2,7 @@
 
 # Explainable Counterfactual Generation for Pneumonia in Chest X-ray Images
 
-## Presentation
+# Presentation
 
 This project originated in the context of the graduate course _IA376N - Generative AI: from models to multimodal applications_,
 offered in the **first semester of 2026 (2026.1)**, at Unicamp, under the supervision of Prof. Dr. Paula Dornhofer Paro Costa, from the Department of Computer and Automation Engineering (DCA) of the School of Electrical and Computer Engineering (FEEC).
@@ -15,23 +15,23 @@ offered in the **first semester of 2026 (2026.1)**, at Unicamp, under the superv
 
 ---
 
-## Project Summary Description
+# Project Summary Description
 
-## Abstract
+# Abstract
 > Summary of the objective, methodology **and results** obtained. In submission **D2**, it is acceptable to report partial results. Suggested maximum of 100 words.
 
 > Falar da baseline e CycleGAN
 
 This project investigates counterfactual generation for pneumonia in chest X-ray images as a tool for data augmentation and explainability. Using the NIH Chest X-ray dataset, we selected healthy images and images annotated only with pneumonia, cleaned metadata, resized images to 128 x 128 pixels, and built patient-level train/validation/test splits. A Conditional Variational Autoencoder (CVAE) and a Cycle-Consistent GAN (CycleGAN) conditioned on disease label, age, and gender were implemented in PyTorch. Partial results include the preprocessing pipeline, exploratory data analysis, trained CVAE and CycleGAN checkpoints, and reconstruction outputs. Current limitations are class imbalance, blurry reconstructions, and the need for quantitative classification and explainability evaluation.
 
-## Problem Description / Motivation
+# Problem Description / Motivation
 > Description of the generating context of the project theme. Motivation for addressing this project theme.
 
 Deep learning models for medical imaging are often limited by data scarcity and class imbalance, especially for less frequent pathological cases such as pneumonia in chest X-rays. In clinical applications, this limitation is especially relevant because models trained on imbalanced data may learn the dominant healthy class more effectively than the disease patterns of interest.
 
 Chest X-ray analysis for pneumonia detection is also challenging because high classification performance alone is not enough for clinical trust. Medical users need to understand which image regions influenced a model decision and whether the model is relying on plausible radiological cues. Counterfactual generation addresses both needs by creating images that preserve patient anatomy while changing the disease condition, making it possible to inspect what the model changes when translating between healthy and pneumonia domains.
 
-## Objective
+# Objective
 > Description of what the project aims to do.  
 > It is possible to specify a general objective and specific objectives of the project.
 
@@ -62,7 +62,7 @@ Expected model outputs are:
 - Counterfactual difference maps highlighting modified regions.
 - Augmented datasets for downstream classification experiments.
 
-## Methodology
+# Methodology
 
 > Clearly and objectively describe, citing references, the methodology proposed to achieve the project objectives.  
 > Describe datasets used.  
@@ -71,9 +71,9 @@ Expected model outputs are:
 > Point out relevant tools.  
 > Describe the evaluation methodology (how will it be assessed whether the objectives were met or not?).
 
-The methodology combines exploratory data analysis, metadata cleaning, patient-level data splitting, conditional generative modeling, and qualitative counterfactual inspection. The implemented models are a CVAE [11], a CycleGAN and classifier-based evaluation.
+The methodology combines exploratory data analysis, metadata cleaning, patient-level data splitting, conditional generative modeling, and qualitative counterfactual inspection. The implemented models are a CVAE, a CycleGAN and classifier-based evaluation.
 
-### Dataset
+## Dataset
 
 > List the datasets used in the project.  
 > For each dataset, include a mini-table in the model below and then provide details on how it was analyzed/used, as in the example below.
@@ -98,9 +98,9 @@ The `Finding Labels` column may contain `No Finding`, a single disease label, or
 
 The full dataset contains 836 distinct label combinations. Among the selected records, the project identified 60,361 healthy X-rays before outlier removal and 322 pneumonia-only X-rays. This creates a severe class imbalance, which is one of the core motivations for studying generative augmentation.
 
-#### Metadata
+### Metadata
 
-##### Pneumonia patients
+#### Pneumonia patients
 
 There are 322 occurrences of pneumonia-only X-rays. Patient ages range from 3 to 87 years old, and no age outliers were detected using the IQR rule.
 
@@ -117,7 +117,7 @@ For pneumonia-only patients, male patients are more frequent than female patient
 - No duplicated rows were found.
 - No age outliers were found for pneumonia-only patients.
 
-##### Healthy patients
+#### Healthy patients
 
 There are 60,361 occurrences of healthy X-rays before cleaning. The raw age range goes from 1 to 413 years old, indicating metadata errors that require outlier removal.
 
@@ -137,7 +137,7 @@ As in the pneumonia-only group, male patients are more frequent than female pati
 
 ![Healthy Patients Age by Gender Distribution](images/healthy_age_by_gender.png)
 
-##### Key Findings from EDA
+#### Key Findings from EDA
 
 1. **Class imbalance**: the selected data contains 60,353 healthy images and only 322 pneumonia-only images after cleaning.
 2. **Age distribution**: pneumonia-only patients are distributed across children, adults, and older adults, with concentration in middle-age ranges.
@@ -145,11 +145,11 @@ As in the pneumonia-only group, male patients are more frequent than female pati
 4. **Data quality**: no duplicate metadata rows were found, but age cleaning was necessary for healthy cases.
 5. **Image standardization**: all loaded images were converted to grayscale tensors and resized to 128 x 128 pixels for model training.
 
-#### Images
+### Images
 
 The original images have different spatial resolutions and are too large for efficient experimentation with the available training setup. For this reason, all images used by the CVAE pipeline are resized to 128 x 128 pixels and normalized to the range `[0, 1]`.
 
-### Preprocessing
+## Preprocessing
 
 ![Preprocessing workflow](images/preprocessing.png)
 
@@ -167,17 +167,19 @@ The preprocessing pipeline implemented in `utils/preprocessing.py` and `utils/da
 
 The split is performed at patient level, so the same patient cannot appear in more than one split. This avoids patient leakage between training and evaluation sets.
 
-### Models
+## Models
 
-#### 1. Generative Models
+### 1. Generative Models
 
 The problem is formulated as a **domain translation task** rather than unconditional generation. 
 
 Two generative approached are being explored:
 
-#### 1.1 Conditional Variational Autoencoder (CVAE) [11]
+#### 1.1 Conditional Variational Autoencoder (CVAE)
 
-The CVAE models the conditional distribution:
+The Conditional Variational Autoencoder (CVAE) [11] is used as the first counterfactual generation baseline. Unlike an unconditional VAE, the model receives both the chest X-ray image and auxiliary conditioning variables, allowing the decoder to reconstruct or generate an image under a specified clinical condition.
+
+In this project, the CVAE models the conditional distribution:
 
 $$
 p(x \mid z, y, m)
@@ -185,17 +187,12 @@ $$
 
 Where:
 
-- \(x\): chest X-ray image.
-- \(z\): latent representation.
-- \(y\): class condition, healthy or pneumonia.
-- \(m\): patient metadata, represented by normalized age and encoded gender.
+- $x$: chest X-ray image.
+- $z$: latent representation.
+- $y$: class condition, healthy or pneumonia.
+- $m$: patient metadata, represented by normalized age and encoded gender.
 
-Counterfactual generation is performed by:
-
-1. Encoding an image into latent space.
-2. Replacing the original class condition with the target class condition.
-3. Decoding the latent representation under the new condition.
-4. Optionally optimizing the latent vector to keep the counterfactual close to the original image.
+Counterfactual generation is performed by encoding an input image into the latent space, replacing the original class condition with the target class condition, and decoding the same latent representation under the new label. This allows the model to answer questions such as: what would this healthy chest X-ray look like if it were conditioned as pneumonia?
 
 Two CVAE variants exist in the repository:
 
@@ -271,7 +268,7 @@ Cycle consistency can help preserve anatomical structure while modifying disease
 - Works with unpaired data
 - Produces sharper and more realistic images
 
-#### 2. Classification Models
+### 2. Classification Models
 
 > Explicar o que foi implementado da baseline
 
@@ -287,8 +284,7 @@ The classifier has two roles:
 - **Performance benchmark**: measure whether synthetic images improve pneumonia classification.
 - **Explainability anchor**: verify whether counterfactual images change the classifier prediction as intended.
 
-
-### Explainability Strategy
+## Explainability Strategy
 
 The main explainability strategy is based on counterfactual differences. Given:
 
@@ -309,7 +305,7 @@ Planned complementary analyses include:
 - Visual comparison between counterfactual difference maps and classifier attention maps.
 - Classifier consistency tests before and after counterfactual generation.
 
-### Tools
+## Tools
 
 | Tool | Purpose |
 |---|---|
@@ -324,26 +320,24 @@ Planned complementary analyses include:
 | Jupyter Notebook | Exploratory analysis and experimentation |
 | kagglehub | Dataset download from Kaggle |
 
-### Evaluation Methodology
+## Evaluation Methodology
 
 The evaluation will consider three aspects:
 
-#### 6.1 Classification Performance:
+### 6.1 Classification Performance:
 - Accuracy  
 - ROC-AUC  
 
-#### 6.2 Image Generation Quality:
+### 6.2 Image Generation Quality:
 - SSIM (Structural Similarity Index): SSIM evaluates structural similarity between original and counterfactual images, measuring whether anatomical consistency is preserved during transformation.  (high is better)
 - FID (Fréchet Inception Distance): FID evaluates the realism of generated images by measuring the distance between the feature distributions of real and synthetic samples, indicating how closely the generated pneumonia images resemble real chest X-rays. (low is better)
 
-#### 6.3 Explainability:
+### 6.3 Explainability:
 - Visual inspection of counterfactual differences  
 - Comparison with Grad-CAM heatmaps  
 - Classifier Consistency (predict with pneumonia vs. without)
 
-
-## Workflow
-
+# Workflow
 
 > Use a tool that allows you to design the workflow and save it as an image (e.g., Draw.io). Insert the image in this section.  
 > Remember that the goal of drawing the workflow is to help anyone who wishes to reproduce your experiments.
@@ -366,7 +360,7 @@ The original project schedule is also available:
 
 ![Schedule](images/schedule.png)
 
-## Experiments, Results, and Discussion of Results
+# Experiments, Results, and Discussion of Results
 
 > In the intermediate project submission (**D2**), this section may contain partial results, explorations of implemented solutions, and  
 > discussions about such experiments, including decisions to change the project trajectory or the description of new experiments as a result of these explorations.
@@ -374,14 +368,13 @@ The original project schedule is also available:
 > It is considered fundamental that the presentation of results should not serve as a treatise whose only purpose is to show that "a lot of work was done."  
 > What is expected from this section is that it **presents and discusses** only the most **relevant results**, highlighting the **strengths and/or limitations** of the methodology, emphasizing aspects of **performance**, and containing content that can be classified as **organized, didactic, and reproducible sharing of knowledge relevant to the community**.
 
-
-### Experiment 1: Classifier Baseline
+## Experiment 1: Classifier Baseline
 
 > Falar da baseline
 
-### Experiment 2: CVAE Training
+## Experiment 2: CVAE Training
 
-A CVAE was trained using PyTorch with:
+### 2.1 Training Configuration
 
 - Image size: 128 x 128.
 - Image channels: 1.
@@ -392,6 +385,8 @@ A CVAE was trained using PyTorch with:
 - Batch size: 64.
 - KL weight: beta = `0.02`.
 - Checkpoints saved every 10 epochs.
+
+### 2.2 Training Loss Behavior
 
 The training was run for 300 epochs, with the final checkpoint saved at epoch 299. The final notebook output reports:
 
@@ -412,7 +407,24 @@ Example reconstruction outputs:
 
 ![CVAE reconstruction epoch 299](training-results/cvae/results/reconstruction_299.png)
 
-After training, the notebook generated counterfactuals for the complete test set by flipping the input class condition. In total, **9,425 original images** and **9,425 counterfactual images** were evaluated. The counterfactual evaluation produced the following results:
+### 2.3 Counterfactual Generation
+
+After training, counterfactual images were generated for the complete test set by flipping the input class condition:
+
+- Healthy \(\rightarrow\) Pneumonia.
+- Pneumonia \(\rightarrow\) Healthy.
+
+The latent representation was extracted from the original image and decoded using the opposite disease condition. This procedure aims to preserve patient-specific structure while modifying disease-related visual evidence.
+
+In total, **9,425 original images** and **9,425 counterfactual images** were evaluated.
+
+### 2.4 Qualitative Evaluation
+
+**Counterfactual image generation examples**
+
+**Counterfactual change heatmaps**
+
+### 2.5 Quantitative Evaluation
 
 | Metric | Value |
 |---|---:|
@@ -429,26 +441,39 @@ The mean SSIM of 0.8190 indicates that the generated counterfactuals preserved m
 
 The FID score of 136.5358 indicates a noticeable distributional difference between the generated counterfactuals and the reference images. This is consistent with a common limitation of VAE-based image generation, where reconstructed images preserve global anatomy but may appear smoother or less realistic than real chest X-rays. Overall, the CVAE provides a useful baseline for counterfactual generation, although further refinement or comparison with models such as CycleGAN may improve image realism.
 
-### Experiment 3: CycleGAN Training
+## Experiment 3: CycleGAN Training
 
 > Falar do CycleGAN
 
-### Discussion
+## Discussion
 
-> Discutir comparando os modelos e os resultados
+> Falar da baseline e CycleGAN
 
-## Conclusion
+The CVAE provides a stable and interpretable baseline for conditional counterfactual generation. Its main advantage is that the conditioning mechanism is direct: disease label, age, and gender are explicitly passed to the encoder and decoder, making it simple to control the target generation setting.
+
+Compared with adversarial models, the CVAE is easier to train and less sensitive to instability. This makes it useful as a first generative baseline for the project. However, the visual results also show the expected limitation of VAE-based models: generated images tend to be smoother and less detailed, which may reduce their clinical realism.
+
+The high SSIM suggests that the CVAE preserves anatomical structure reasonably well, but the FID score indicates that realism remains limited. This motivates the comparison with CycleGAN, which is expected to generate sharper images due to adversarial training, although with a higher risk of artifacts and training instability.
+
+Main limitations observed in the CVAE experiment include:
+
+- **Blurry reconstructions**: generated images preserve global structure but may lose fine radiological detail.
+- **Class imbalance**: the model may be biased toward healthy-looking reconstructions because healthy images dominate the selected dataset.
+- **Counterfactual validity**: SSIM and FID do not confirm whether the generated image actually changes the disease evidence enough to affect a classifier.
+- **Clinical plausibility**: FID measures distributional similarity but not clinical relevance, so a classifier-based evaluation is still needed to verify whether the generated changes correspond to pneumonia-related regions.
+
+# Conclusion
 
 > The Conclusion section should recover the main information already presented in the report and point to future work.  
 > In the intermediate project submission (**D2**), it may contain information about which steps or how the project will be conducted until its completion.  
 
-## Ethical considerations
+# Ethical considerations
 
 > Adicionar mais sobre as considerações éticas
 
 Although counterfactual medical image generation offers promising opportunities for explainability and data augmentation, it also raises important ethical concerns. Generative models may amplify demographic biases, hallucinate clinically invalid findings, or unintentionally alter sensitive attributes such as age and sex. Additionally, synthetic medical data may still contain privacy risks due to memorization effects. Therefore, careful evaluation of fairness, realism, and clinical plausibility is essential before deployment in healthcare settings.
 
-## Bibliographic References
+# Bibliographic References
 
 1. Kumar, Amar, et al. "Prism: High-resolution & precise counterfactual medical image generation using language-guided stable diffusion." arXiv preprint arXiv:2503.00196 (2025).
 2. Atad, Matan, et al. "Counterfactual explanations for medical image classification and regression using diffusion autoencoder." arXiv preprint arXiv:2408.01571 (2024).
@@ -464,8 +489,9 @@ Although counterfactual medical image generation offers promising opportunities 
 12. Xia, Tian, et al. "Mitigating attribute amplification in counterfactual image generation." International Conference on Medical Image Computing and Computer-Assisted Intervention. Cham: Springer Nature Switzerland, 2024.
 13. Herington J, McCradden MD, Creel K, Boellaard R, Jones EC, Jha AK, Rahmim A, Scott PJH, Sunderland JJ, Wahl RL, Zuehlsdorff S, Saboury B. Ethical Considerations for Artificial Intelligence in Medical Imaging: Data Collection, Development, and Evaluation. J Nucl Med. 2023 Dec 1;64(12):1848-1854. doi: 10.2967/jnumed.123.266080. PMID: 37827839; PMCID: PMC10690124.
 14. Jones, C., Castro, D.C., De Sousa Ribeiro, F. et al. A causal perspective on dataset bias in machine learning for medical imaging. Nat Mach Intell 6, 138–146 (2024). https://doi.org/10.1038/s42256-024-00797-8
+
 ---
 
-## Presentation slides
+# Presentation slides
 
 [E2 presentation](https://docs.google.com/presentation/d/10yREsF1VV15-_t_ywsPW0LPbsevZmyQg6nUT1NBQpgE/edit?usp=sharing)
