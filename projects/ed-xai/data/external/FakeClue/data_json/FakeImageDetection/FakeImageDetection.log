@@ -1,0 +1,526 @@
+============================================================
+Split: train | Model: rn50ft
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3828 (39938/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  5532
+  TN (real->real):  34406
+  FP (real->fake):  1541
+  FN (fake->real):  62864
+
+Per-category accuracy:
+  animal: 0.4994 (7634/15285)
+  deepfake: 0.2032 (4868/23961)
+  doc: 0.1999 (2407/12042)
+  human: 0.2783 (2526/9077)
+  object: 0.4728 (8889/18800)
+  satellite: 0.6090 (11039/18125)
+  scene: 0.3651 (2575/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50_modft
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3571 (37257/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  3469
+  TN (real->real):  33788
+  FP (real->fake):  2159
+  FN (fake->real):  64927
+
+Per-category accuracy:
+  animal: 0.4884 (7465/15285)
+  deepfake: 0.2100 (5033/23961)
+  doc: 0.2158 (2599/12042)
+  human: 0.2892 (2625/9077)
+  object: 0.4416 (8303/18800)
+  satellite: 0.4816 (8729/18125)
+  scene: 0.3549 (2503/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_spectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3784 (39482/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  4532
+  TN (real->real):  34950
+  FP (real->fake):  997
+  FN (fake->real):  63864
+
+Per-category accuracy:
+  animal: 0.5049 (7717/15285)
+  deepfake: 0.2053 (4920/23961)
+  doc: 0.2154 (2594/12042)
+  human: 0.2812 (2552/9077)
+  object: 0.4599 (8646/18800)
+  satellite: 0.5828 (10563/18125)
+  scene: 0.3530 (2490/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_lowspectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3872 (40398/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  6184
+  TN (real->real):  34214
+  FP (real->fake):  1733
+  FN (fake->real):  62212
+
+Per-category accuracy:
+  animal: 0.5106 (7804/15285)
+  deepfake: 0.2021 (4842/23961)
+  doc: 0.2121 (2554/12042)
+  human: 0.2860 (2596/9077)
+  object: 0.4780 (8986/18800)
+  satellite: 0.6098 (11053/18125)
+  scene: 0.3634 (2563/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_midspectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3838 (40044/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  6000
+  TN (real->real):  34044
+  FP (real->fake):  1903
+  FN (fake->real):  62396
+
+Per-category accuracy:
+  animal: 0.5079 (7764/15285)
+  deepfake: 0.2212 (5300/23961)
+  doc: 0.2047 (2465/12042)
+  human: 0.2852 (2589/9077)
+  object: 0.4890 (9193/18800)
+  satellite: 0.5627 (10199/18125)
+  scene: 0.3593 (2534/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_highspectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3877 (40458/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  6814
+  TN (real->real):  33644
+  FP (real->fake):  2303
+  FN (fake->real):  61582
+
+Per-category accuracy:
+  animal: 0.5084 (7771/15285)
+  deepfake: 0.2383 (5711/23961)
+  doc: 0.1935 (2330/12042)
+  human: 0.2804 (2545/9077)
+  object: 0.4727 (8886/18800)
+  satellite: 0.5903 (10700/18125)
+  scene: 0.3566 (2515/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_pixelmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3635 (37928/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  2817
+  TN (real->real):  35111
+  FP (real->fake):  836
+  FN (fake->real):  65579
+
+Per-category accuracy:
+  animal: 0.4878 (7456/15285)
+  deepfake: 0.2017 (4834/23961)
+  doc: 0.2148 (2587/12042)
+  human: 0.2709 (2459/9077)
+  object: 0.4271 (8030/18800)
+  satellite: 0.5610 (10168/18125)
+  scene: 0.3394 (2394/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_patchmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3796 (39607/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  4930
+  TN (real->real):  34677
+  FP (real->fake):  1270
+  FN (fake->real):  63466
+
+Per-category accuracy:
+  animal: 0.5128 (7838/15285)
+  deepfake: 0.2044 (4897/23961)
+  doc: 0.2148 (2587/12042)
+  human: 0.2854 (2591/9077)
+  object: 0.4879 (9172/18800)
+  satellite: 0.5444 (9868/18125)
+  scene: 0.3763 (2654/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50ft_spectralmask(0.5)
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3726 (38881/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  3602
+  TN (real->real):  35279
+  FP (real->fake):  668
+  FN (fake->real):  64794
+
+Per-category accuracy:
+  animal: 0.4865 (7436/15285)
+  deepfake: 0.2017 (4834/23961)
+  doc: 0.2158 (2599/12042)
+  human: 0.2702 (2453/9077)
+  object: 0.4298 (8080/18800)
+  satellite: 0.6114 (11082/18125)
+  scene: 0.3399 (2397/7053)
+============================================================
+
+============================================================
+Split: train | Model: rn50_modft_spectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3797 (39623/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  6794
+  TN (real->real):  32829
+  FP (real->fake):  3118
+  FN (fake->real):  61602
+
+Per-category accuracy:
+  animal: 0.5021 (7674/15285)
+  deepfake: 0.2410 (5774/23961)
+  doc: 0.3368 (4056/12042)
+  human: 0.2948 (2676/9077)
+  object: 0.4546 (8546/18800)
+  satellite: 0.4641 (8411/18125)
+  scene: 0.3525 (2486/7053)
+============================================================
+
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.4474 (46682/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  12680
+  TN (real->real):  34002
+  FP (real->fake):  1945
+  FN (fake->real):  55716
+
+Per-category accuracy:
+  animal: 0.5469 (8359/15285)
+  deepfake: 0.2644 (6335/23961)
+  doc: 0.2142 (2579/12042)
+  human: 0.3426 (3110/9077)
+  object: 0.5790 (10886/18800)
+  satellite: 0.6953 (12603/18125)
+  scene: 0.3984 (2810/7053)
+============================================================
+
+============================================================
+Split: train | Model: clipft_spectralmask
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.4432 (46247/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  11907
+  TN (real->real):  34340
+  FP (real->fake):  1607
+  FN (fake->real):  56489
+
+Per-category accuracy:
+  animal: 0.5433 (8305/15285)
+  deepfake: 0.2652 (6354/23961)
+  doc: 0.2149 (2588/12042)
+  human: 0.3367 (3056/9077)
+  object: 0.5734 (10779/18800)
+  satellite: 0.6832 (12383/18125)
+  scene: 0.3944 (2782/7053)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3970 (1985/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  247
+  TN (real->real):  1738
+  FP (real->fake):  70
+  FN (fake->real):  2945
+
+Per-category accuracy:
+  animal: 0.5274 (395/749)
+  deepfake: 0.2046 (239/1168)
+  doc: 0.1927 (111/576)
+  human: 0.3052 (123/403)
+  object: 0.5075 (440/867)
+  satellite: 0.5989 (524/875)
+  scene: 0.4227 (153/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50_modft
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3676 (1838/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  149
+  TN (real->real):  1689
+  FP (real->fake):  119
+  FN (fake->real):  3043
+
+Per-category accuracy:
+  animal: 0.4873 (365/749)
+  deepfake: 0.2080 (243/1168)
+  doc: 0.2031 (117/576)
+  human: 0.3201 (129/403)
+  object: 0.4706 (408/867)
+  satellite: 0.4971 (435/875)
+  scene: 0.3895 (141/362)
+============================================================
+
+============================================================
+Split: test | Model: clipft
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4560 (2280/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  563
+  TN (real->real):  1717
+  FP (real->fake):  91
+  FN (fake->real):  2629
+
+Per-category accuracy:
+  animal: 0.5661 (424/749)
+  deepfake: 0.2620 (306/1168)
+  doc: 0.1979 (114/576)
+  human: 0.3623 (146/403)
+  object: 0.5905 (512/867)
+  satellite: 0.6983 (611/875)
+  scene: 0.4613 (167/362)
+============================================================
+
+============================================================
+Split: test | Model: clipft_spectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4512 (2256/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  531
+  TN (real->real):  1725
+  FP (real->fake):  83
+  FN (fake->real):  2661
+
+Per-category accuracy:
+  animal: 0.5621 (421/749)
+  deepfake: 0.2637 (308/1168)
+  doc: 0.1927 (111/576)
+  human: 0.3548 (143/403)
+  object: 0.5813 (504/867)
+  satellite: 0.6891 (603/875)
+  scene: 0.4586 (166/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_highspectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4032 (2016/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  316
+  TN (real->real):  1700
+  FP (real->fake):  108
+  FN (fake->real):  2876
+
+Per-category accuracy:
+  animal: 0.5287 (396/749)
+  deepfake: 0.2568 (300/1168)
+  doc: 0.1858 (107/576)
+  human: 0.3077 (124/403)
+  object: 0.5075 (440/867)
+  satellite: 0.5737 (502/875)
+  scene: 0.4061 (147/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_lowspectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4012 (2006/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  276
+  TN (real->real):  1730
+  FP (real->fake):  78
+  FN (fake->real):  2916
+
+Per-category accuracy:
+  animal: 0.5327 (399/749)
+  deepfake: 0.2038 (238/1168)
+  doc: 0.1962 (113/576)
+  human: 0.3077 (124/403)
+  object: 0.5040 (437/867)
+  satellite: 0.6171 (540/875)
+  scene: 0.4282 (155/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_midspectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4002 (2001/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  284
+  TN (real->real):  1717
+  FP (real->fake):  91
+  FN (fake->real):  2908
+
+Per-category accuracy:
+  animal: 0.5247 (393/749)
+  deepfake: 0.2286 (267/1168)
+  doc: 0.1962 (113/576)
+  human: 0.3002 (121/403)
+  object: 0.5352 (464/867)
+  satellite: 0.5611 (491/875)
+  scene: 0.4199 (152/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_patchmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3942 (1971/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  225
+  TN (real->real):  1746
+  FP (real->fake):  62
+  FN (fake->real):  2967
+
+Per-category accuracy:
+  animal: 0.5461 (409/749)
+  deepfake: 0.2063 (241/1168)
+  doc: 0.1979 (114/576)
+  human: 0.3176 (128/403)
+  object: 0.5133 (445/867)
+  satellite: 0.5486 (480/875)
+  scene: 0.4254 (154/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_pixelmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3750 (1875/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  112
+  TN (real->real):  1763
+  FP (real->fake):  45
+  FN (fake->real):  3080
+
+Per-category accuracy:
+  animal: 0.5087 (381/749)
+  deepfake: 0.2063 (241/1168)
+  doc: 0.2031 (117/576)
+  human: 0.3027 (122/403)
+  object: 0.4544 (394/867)
+  satellite: 0.5520 (483/875)
+  scene: 0.3785 (137/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_spectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3902 (1951/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  184
+  TN (real->real):  1767
+  FP (real->fake):  41
+  FN (fake->real):  3008
+
+Per-category accuracy:
+  animal: 0.5274 (395/749)
+  deepfake: 0.2063 (241/1168)
+  doc: 0.2014 (116/576)
+  human: 0.3027 (122/403)
+  object: 0.4879 (423/867)
+  satellite: 0.5863 (513/875)
+  scene: 0.3895 (141/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50ft_spectralmask(0.5)
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3864 (1932/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  156
+  TN (real->real):  1776
+  FP (real->fake):  32
+  FN (fake->real):  3036
+
+Per-category accuracy:
+  animal: 0.5140 (385/749)
+  deepfake: 0.2046 (239/1168)
+  doc: 0.2031 (117/576)
+  human: 0.3002 (121/403)
+  object: 0.4614 (400/867)
+  satellite: 0.6080 (532/875)
+  scene: 0.3812 (138/362)
+============================================================
+
+============================================================
+Split: test | Model: rn50_modft_spectralmask
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3972 (1986/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  340
+  TN (real->real):  1646
+  FP (real->fake):  162
+  FN (fake->real):  2852
+
+Per-category accuracy:
+  animal: 0.5180 (388/749)
+  deepfake: 0.2440 (285/1168)
+  doc: 0.3438 (198/576)
+  human: 0.3027 (122/403)
+  object: 0.4913 (426/867)
+  satellite: 0.4949 (433/875)
+  scene: 0.3702 (134/362)
+============================================================
+

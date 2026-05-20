@@ -1,0 +1,12 @@
+{
+  "text": "The image also presents artifacts in the frequency domain.",
+  "categories": [
+    {"category": "deepfake",  "results_dir": "GANDCTAnalysis",     "results_file": "{split}_frequency_ridge_dct.json"},
+    {"category": "animal",    "results_dir": "SPAI",               "results_file": "{split}_frequency_spai.json"},
+    {"category": "object",    "results_dir": "SPAI",               "results_file": "{split}_frequency_spai.json"},
+    {"category": "satellite", "results_dir": "SPAI",               "results_file": "{split}_frequency_spai.json"},
+    {"category": "human",     "results_dir": "SPAI",               "results_file": "{split}_frequency_spai.json"},
+    {"category": "scene",     "results_dir": "SPAI",               "results_file": "{split}_frequency_spai.json"},
+    {"category": "doc",       "results_dir": "FakeImageDetection", "results_file": "{split}_frequency_rn50_modft_spectralmask.json"}
+  ]
+}
