@@ -14,7 +14,6 @@ offered in the first semester of 2026, at Unicamp, under the supervision of Prof
 
 ## Abstract
 
-> Summary of the objective, methodology **and results** obtained. In submission **D2**, it is acceptable to report partial results. Suggested maximum of 100 words.
 
 The STE-GAN model represents a promising approach in generative adversarial frameworks, yet scaling its capabilities across diverse data environments remains a significant challenge. This paper presents the mapping and structural analysis of the STE-GAN model across multiple datasets. While a wide range of repositories was successfully cataloged, their inherent technical complexity and heterogeneity prevented immediate integration into a unified training pipeline. As an initial milestone, the original STE-GAN architecture was successfully executed and validated, establishing a stable performance baseline. To overcome current integration and convergence limitations, we outline the next development phases, which focus on implementing a novel distance metric to optimize generation and introducing structural modifications to the generator. This work lays the foundation for robust multi-subject data synthesis in future iterations.
 
@@ -22,7 +21,6 @@ The STE-GAN model represents a promising approach in generative adversarial fram
 
 ## Problem Description / Motivation
 
-> Description of the generating context of the project theme. Motivation for addressing this project theme.
 
 Surface Electromyography (sEMG) signals of articulatory muscles reflect the speech production process. As such, they are a biosignal of interest for Silent Speech Interfaces (SSIs) [1], which aim to enable speech communication without depending on acoustic speech. However, acquiring these biological signals is notoriously difficult. Subjects must undergo a tiresome recording procedure, resulting in small datasets with low subject variability. Furthermore, the collected data is often lawfully restricted. Consequently, there is a strong motivation for Speech-to-EMG (STE) modeling, which could be explored to generate new, artificial EMG signals to improve ETS model training and mitigate data scarcity.
 
@@ -30,8 +28,6 @@ To address the issues of data acquisition and aid in the development of robust S
 
 ## Objective
 
-> Description of what the project aims to do.  
-> It is possible to specify a general objective and specific objectives of the project.
 
 The main goal of this project is to generate reliable EMG data from acoustic speech that is not only similar to the target domain, but also capable of retaining high linguistic accuracy (e.g., maintaining a low Word Error Rate) after being converted back to audio.
 
@@ -39,12 +35,7 @@ The model in [2] has multiple components and losses. This project will introduce
 
 ## Methodology
 
-> Clearly and objectively describe, citing references, the methodology proposed to achieve the project objectives. - OK
-> Describe datasets used.  - NEXT SECTION
-> Cite reference algorithms. - OK
-> Justify the reasons for the chosen methods. - OK
-> Point out relevant tools. - OK
-> Describe the evaluation methodology (how will it be assessed whether the objectives were met or not?). - OK
+
 
 The generative modeling approach that will serve as the baseline for this study is the Speech-to-Electromyography Generative Adversarial Network (STE-GAN) presented in [2]. This approach was found to be particularly compelling due to its strong and reproducible results. Notably, STE-GAN directly converts acoustic speech to EMG signals in an end-to-end fashion, eliminating the need to predict intermediate features. In doing so, it achieved impressive metrics, such as a high Envelope Correlation Coefficient of 0.66 and over 80% Phoneme Accuracy on the generated signals. Furthermore, instead of naively sampling from a Gaussian distribution, the model conditions the generation on a controllable latent space—soft speech units extracted from audio — which importantly enables the model to generalize to speech of unseen speakers. Finally, this choice is strongly motivated by the fact that the authors made their code openly available, which greatly facilitates project reproducibility.
 
@@ -56,8 +47,7 @@ All the metrics presented in [2] will be maintained, as the evaluation will be m
 
 ### Datasets and Evolution
 
-> List the datasets used in the project.  
-> For each dataset, include a mini-table in the model below and then provide details on how it was analyzed/used, as in the example below.
+
 
 | Dataset | Web Address | Subjects | Total Duration | Sample Length | EMG Sampling Rate | Audio Sampling Rate | # Electrodes | Modalities | Availability | Extra Info |
 |--------|-------------|----------|----------------|---------------|-------------------|---------------------|--------------|------------|--------------|------------|
@@ -97,17 +87,16 @@ Here is a mapping of the position of EMG electrodes in the selected datasets (av
 | Palatoglossus                                    |        |               |          |            | ✔              |
 | Tongue                                           | ✔      |               |          |            |                |
 | Unspecified                                      |        |               | ~✔       | ✔          |                |
-> Provide a description of what you concluded about this dataset. Suggested guiding questions or information to include:
+
 For this project, our models require datasets containing paired EMG and audio signals. Since this type of data is relatively rare, the 9 publicly available datasets listed above have all been surveyed. Their quality, compatibility, and suitability were thouroughly analysed and it was decided that, for now, the project will continue with the unique use of the Digital Voicing of Silent Speech [4] dataset. 
 
 This decision was made based on the fact that each dataset was captured using a distinct channel setup (position and number-wise), which hinders merging between datasets. Also, it was decided that the blocks in the architecture are most important for the project, so the focus has shifted towards it.
-> - What is the dataset format, size, type of annotation?
+
 Regarding the characteristics of the datasets, all audio was available as .wav files and sampling frequency ranged from 16 kHz to 48 kHz. The EMG data came in various formats, with it's sampling frequency varying from 256 to 2048 Hz. Phonemes were captured for each sliding window of size 27ms and stride of 10ms, when available. All samples have a duration of a few seconds.
-> - What transformations and preprocessing were done? Cleaning, re-annotation, etc.
+
 No transformations were applied up to now, except for the main dataset [4], which was preprocessed as described in [2].
-> - Include a summary with descriptive statistics of the dataset(s).
-:)
-> - Use tables and/or charts to describe the main aspects of the dataset that are relevant to the project.
+
+
 This dataset uses only one subject and 6 channels, which were placed in the following muscles:
 
 | | Location | Estimated muscle(s) |
@@ -125,16 +114,13 @@ This dataset uses only one subject and 6 channels, which were placed in the foll
 
 ### Workflow
 
-> Use a tool that allows you to design the workflow and save it as an image (e.g., Draw.io). Insert the image in this section.  
-> You may choose to use a workflow manager (Sacred, Pachyderm, etc.), in which case use the manager to generate a diagram for you.  
-> Remember that the goal of drawing the workflow is to help anyone who wishes to reproduce your experiments.
+
 
 ![Project Workflow](images/workflow.svg)
 
 ## Experiments, Results, and Discussion of Results
 
-> In the intermediate project submission (**D2**), this section may contain partial results, explorations of implemented solutions, and  
-> discussions about such experiments, including decisions to change the project trajectory or the description of new experiments as a result of these explorations.
+
 
 After surveying all datasets as described above, many architectural changes were proposed. The ones that seemed more relevant are:
 
@@ -153,9 +139,6 @@ The second item's implementation details are yet to be decided. For now, no part
 Only the original model [2] was run with dataset [4] and results similar to what the original authors reported were obtained.
 
 ## Conclusion
-
-> The Conclusion section should recover the main information already presented in the report and point to future work.  
-> In the intermediate project submission (**D2**), it may contain information about which steps or how the project will be conducted until its completion. 
 
 The mapping and structural analysis of the STE-GAN model [2] has been presented, alongside multiple datasets. Although a wide range of datasets was successfully cataloged during this phase, their inherent technical complexity and heterogeneity prevented immediate integration for training.
 
