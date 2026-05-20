@@ -1,0 +1,24 @@
+experiment_name: densenet121
+
+model:
+  name: FrozenDenseNet121
+  dropout: null  # head is a single Linear, no dropout
+
+data:
+  img_size: [224, 224]
+  augmentation: true
+  class_balancing: pos_weight  # weighted_random_sampler | pos_weight | none
+  augmentations:
+    random_rotation_degrees: 10
+    horizontal_flip_p: 0.5
+    #brightness_jitter: 0.2
+    random_resized_crop_scale: [0.95, 1.0]
+
+training:
+  batch_size: 32
+  lr: 3.0e-4
+  num_epochs: 100
+  weight_decay: 1.0e-4
+  early_stopping_patience: 10
+
+seed: 42

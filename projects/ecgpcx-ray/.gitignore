@@ -1,6 +1,9 @@
 # Data
 /data/
 
+/models/CycleGAN/checkpoints
+/models/CycleGAN/outputs/progress
+
 # Mac OS-specific storage files
 .DS_Store
 
@@ -89,6 +92,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+.vscode
 
 # IPython
 profile_default/
@@ -189,3 +193,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+*.pt
+
+counterfactuals/
+original/
+training-results/cvae/models/
+change_heatmaps/

@@ -1,8 +1,11 @@
 name: ia376_env
 channels:
   - pytorch
+  - nvidia
   - defaults
+
 dependencies:
+  - python=3.10
   - ipython
   - jupyterlab
   - matplotlib
@@ -14,8 +17,7 @@ dependencies:
   - ruff
   - scikit-learn
   - pytorch
-  - pyyaml
-  # - pytorch-cuda=11.8  # descomente e ajuste a versão se tiver GPU NVIDIA
+  - pytorch-cuda=11.8
   - torchaudio
   - torchvision
   - ipywidgets
