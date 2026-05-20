@@ -121,22 +121,24 @@ This dataset uses only one subject and 6 channels, which were placed in the foll
 ## Experiments, Results, and Discussion of Results
 
 
+In addition to studying the available datasets, we were also exploring the STEGAN paper itself, along with related concepts and the broader field of speech processing. This helped us identify potential approaches and draw inspiration from existing methods that could be adapted to our problem.
 
-After surveying all datasets as described above, many architectural changes were proposed. The ones that seemed more relevant are:
+To familiarize ourselves with the concepts, we held discussions on various *Speech processing*, *Text-to-Speech* and *Voice Conversion* models and then studied each of these approaches in greater depth ([Presentation 1](https://canva.link/8kdrzu5e2891t9p),[ Presentation 2](https://canva.link/3vccwzqm0s07sf2)). A brief introductory presentation was shared with the group to align the main ideas. Throughout this process, we explored multiple strategies and conducted practical experiments ([Speech processing notebookm](https://colab.research.google.com/drive/1Ps4oY2rFUA9dYppG8Mc6FwB1Bl5MQLa_?usp=sharing), [RVQ concept notebook](https://colab.research.google.com/drive/1shZx8IXlm9ybhCvpW0WGF2YiexW6Cv0s?usp=sharing)) focusing primarily on the use of codecs. Based on these findings, we proposed applying codec-based tests in the EMG context to evaluate their potential for this type of signal.
+
+
+Such discussions were essential for developing a deeper understanding of the problem and enabled us to propose ways to tackle it. Among the most relevant proposals, the following were selected:
+
 
 1. The addition of an EMG-specific pre-trained tokenizer to complement the already present EMG Encoder (trained on audio features). This will serve as a distance metric between the real and fake EMGs, as well as a new loss to be propagated back through the generator.
 
 2. A new, attention-based generator to reduce the amount of CNN layers used originally.
 
 For the first item, a SOTA self-supervised foundational model for EEGs and EMGs was chosen, the NeuroRVQ [12]. It surpasses already consolidated foundational models such as CBRAMOD [13] and Labram [14].
-
 The second item's implementation details are yet to be decided. For now, no partial results regarding these changes were obtained.
 
-> The discussion of results may be carried out in a separate section or integrated into the results section. This is a matter of style.  
-> It is considered fundamental that the presentation of results should not serve as a treatise whose only purpose is to show that "a lot of work was done."  
-> What is expected from this section is that it **presents and discusses** only the most **relevant results**, highlighting the **strengths and/or limitations** of the methodology, emphasizing aspects of **performance**, and containing content that can be classified as **organized, didactic, and reproducible sharing of knowledge relevant to the community**.
+Only the original model [2] was tested with dataset [4] and results similar to what the original authors reported were obtained. Now, with the proposals well defined, we concluded the exploration phase and began the experimentation phase.
 
-Only the original model [2] was run with dataset [4] and results similar to what the original authors reported were obtained.
+
 
 ## Conclusion
 
