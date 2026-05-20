@@ -14,7 +14,7 @@ offered in the first semester of 2026, at Unicamp, under the supervision of Prof
 > | Hasnat Hameed | 270284 | Civil Engineering|
 > | Iniobong Nicholas Udeme | 298961 | Applied Physics|
 
-[**Presentation Link (D2) Here**](https://docs.google.com/presentation/d/1CM4DDgOnC9EBGzu9f0BrfLRTlg05Kgunh3uYEckwZDQ/edit?usp=sharing)
+[**Presentation Link (D2) Here**](https://docs.google.com/presentation/d/1DMDBgBiviRlcB0tcGtO3RpONQTYD3BqT/edit?usp=sharing&ouid=113310569201771357639&rtpof=true&sd=true)
 
 ## Abstract
 
