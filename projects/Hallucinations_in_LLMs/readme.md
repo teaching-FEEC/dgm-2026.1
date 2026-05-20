@@ -218,7 +218,7 @@ Since $y$ = 1 denotes hallucination, H-Neurons are defined as:
 
 $$\large\mathcal{H} = \{\, j : w_j > 0 \,\}$$
 
-$$\large H_{\%} =\frac{|\mathcal{H}|}{524288}\times 100$$
+$$\large H_{\mathrm{pct}} =\frac{|\mathcal{H}|}{524288}\times 100$$
 
 ## Experiments, Results, and Discussion of Results
 
