@@ -19,7 +19,7 @@ offered in the **first semester of 2026 (2026.1)**, at Unicamp, under the superv
 
 # Abstract
 
-This project investigates counterfactual generation for pneumonia in chest X-ray images as a tool for data augmentation and explainability. Using the NIH Chest X-ray dataset, we selected healthy images and images annotated only with pneumonia, cleaned metadata, resized images to 128 x 128 pixels, and built patient-level train/validation/test splits. A Conditional Variational Autoencoder (CVAE) and a Cycle-Consistent GAN (CycleGAN) conditioned on disease label, age, and gender were implemented in PyTorch. Partial results include the preprocessing pipeline, exploratory data analysis, trained CVAE and CycleGAN checkpoints, and reconstruction outputs. Current limitations are class imbalance, blurry reconstructions, and the need for quantitative classification and explainability evaluation.
+This project investigates counterfactual generation for pneumonia in chest X-rays using the NIH Chest X-ray dataset. We built patient-level splits, trained classifier baselines, and implemented two generative models: a metadata-conditioned CVAE and an unpaired CycleGAN. Classifier baselines showed limited discriminative performance under severe class imbalance, with the best test AUC reaching 0.6668. The CVAE preserved structure well (SSIM = 0.8190) but had limited realism (FID = 136.5358), while CycleGAN produced sharper translations with lower mean FID (115.34). Results suggest counterfactual generation is feasible, but classifier validity and clinical plausibility remain open challenges.
 
 # Problem Description / Motivation
 
@@ -38,8 +38,8 @@ Instead of generating images from random noise alone, the problem is formulated 
 
 The central questions are:
 
-- *What would a healthy patient look like if they had pneumonia?*
-- *What image regions are modified to represent pneumonia?*
+- **What would a healthy patient look like if they had pneumonia?***
+- **What image regions are modified to represent pneumonia?**
 
 Specific objectives are:
 
@@ -205,6 +205,7 @@ $$
 0.5 \cdot \text{MSE}(x, \hat{x}) +
 0.5 \cdot \text{L1}(x, \hat{x})
 $$
+
 This combination was chosen because MSE penalizes larger pixel-level errors, while L1 helps preserve sharper intensity differences and is less sensitive to outliers. Since chest X-rays are grayscale images normalized to `[0, 1]`, both terms are computed directly on flattened image tensors.
 
 The KL-divergence term is computed from \(\mu\) and \(\log\sigma^2\):
@@ -310,6 +311,16 @@ Planned complementary analyses include:
 | kagglehub | Dataset download from Kaggle |
 
 ## Evaluation Methodology
+
+The objectives will be assessed through a combination of classifier performance, image-generation metrics, and qualitative explainability analysis. The project will be considered successful if the generated counterfactuals preserve patient anatomy while introducing localized changes, and the synthetic images show potential usefulness for downstream classification.
+
+The classification objective is assessed with ROC-AUC, accuracy, confusion matrices, and training/validation curves. ROC-AUC is the primary metric because the dataset is severely imbalanced. This objective is met only if the classifier achieves stable validation behavior and test performance clearly above chance, especially for pneumonia cases. If classifier performance is weak, it cannot be used as a reliable oracle for validating counterfactuals.
+
+The image-generation objective is assessed with SSIM, FID, and visual inspection. SSIM indicates whether counterfactuals preserve anatomical structure, while FID indicates whether generated images follow the distribution of real chest X-rays. This objective is met if generated images remain anatomically close to the input, avoid obvious artifacts, and improve realism across model variants.
+
+The explainability objective is assessed by inspecting counterfactual difference heatmaps and, in future work, comparing them with Grad-CAM maps from a reliable classifier. This objective is met if generated changes are spatially meaningful, concentrated in plausible image regions, and eventually produce the expected classifier prediction change.
+
+The data augmentation objective will be assessed by retraining the classifier with and without generated images. It is met if synthetic counterfactuals improve ROC-AUC or minority-class recall without increasing overfitting or introducing clinically implausible artifacts.
 
 The evaluation will consider three aspects:
 
@@ -448,15 +459,17 @@ The final metrics were: best validation AUC = 0.5406 (epoch 3), test AUC = 0.620
 
 ### 2.1 Training Configuration
 
-- Image size: 128 x 128.
-- Image channels: 1.
-- Latent dimension: 64.
-- Conditions: binary disease label, normalized age, and gender embedding.
-- Optimizer: Adam.
-- Learning rate: `3e-4`.
-- Batch size: 64.
-- KL weight: beta = `0.02`.
-- Checkpoints saved every 10 epochs.
+| Hyperparameter | Value |
+|---|---|
+| Image size | 128 × 128 |
+| Batch size | 64 |
+| Epochs | 300 |
+| Learning rate | 3 × 10⁻⁴ |
+| Optimizer | Adam |
+| z | 64 |
+| Conditions | binary disease label, normalized age, and gender embedding |
+| KL weight $\beta$ | 0.02 |
+| Device | CUDA |
 
 ### 2.2 Training Loss Behavior
 
@@ -494,7 +507,7 @@ In total, **9,425 original images** and **9,425 counterfactual images** were eva
 
 **Counterfactual image generation examples**
 
-![CVAE Counterfactual examples](training-results\cvae\results\generation_examples.png)
+![CVAE Counterfactual examples](training-results/cvae/results/generation_examples.png)
 
 The figure above shows 4 example pairs for each translation direction. Blue borders denote real (input) images while red borders denote generated counteerfactual (output) images.
 
@@ -502,7 +515,7 @@ The generated examples preserve the main anatomical layout of the input X-rays, 
 
 **Counterfactual change heatmaps**
 
-![CVAE Change Heatmap](training-results\cvae\results\cvae_change_heatmap_008.png)
+![CVAE Change Heatmap](training-results/cvae/results/cvae_change_heatmap_008.png)
 
 The heatmaps show the absolute pixel-level differences between each original image and its generated counterfactual. Brighter regions indicate where the CVAE changed the image more strongly.
 
@@ -669,15 +682,15 @@ The **identity loss** was included to avoid unnecessary texture shifts when a ge
 Main limitations and future direction of the CycleGAN include:
 
 - **Resolution**: 128 × 128 may be insufficient to capture fine-grained radiological features such as subtle consolidation boundaries. A follow-up experiment at 256 × 256 is planned if computational resources allow.
-- **Class imbalance**: We still have much more cases of healthy X-ray than Pneumonia, which might be affecting the performance of the generator, specially to learn H->P translaction. The unpaired setup partially mitigates this, but a more balanced set would strengthen the evaluation.
+- **Class imbalance**: We still have much more cases of healthy X-ray than Pneumonia, which might be affecting the performance of the generator, specially to learn H $\rightarrow$ P translaction. The unpaired setup partially mitigates this, but a more balanced set would strengthen the evaluation.
 - **FID as sole metric**: FID measures distributional similarity but not clinical relevance. Future work will complement it with a classifier-based counterfactual validity check. Generated pneumonia images should flip a downstream classifier's prediction with high probability.
 - **Artifact reduction**: minor artifacts observed at lung borders in some generated images warrant investigation into whether longer training, higher resolution, or spectral normalization in the discriminator could reduce them.
 
 # Conclusion
 
-This work presented a generative framework for counterfactual image generation in chest X-rays, combining a CVAE and a CycleGAN trained on the NIH Chest X-ray dataset to translate images between healthy and pneumonia domains. The CVAE produced anatomically consistent counterfactuals (mean SSIM 0.82) but with limited realism (FID 136.5), while the CycleGAN achieved sharper translations (mean FID 115.3) though with residual artifacts. A downstream binary classifier was trained, with the best model reaching a test AUC of 0.67, insufficient to reliably assess counterfactual validity. 
+This work presented a generative framework for counterfactual image generation in chest X-rays, combining a CVAE and a CycleGAN trained on the NIH Chest X-ray dataset to translate images between healthy and pneumonia domains. The CVAE produced anatomically consistent counterfactuals (mean SSIM 0.82) but with limited realism (FID 136.5), while the CycleGAN achieved sharper translations (mean FID 115.3) though with residual artifacts. A downstream binary classifier was trained, with the best model reaching a test AUC of 0.67, insufficient to reliably assess counterfactual validity.
 
-Remaining challenges include class imbalance, image resolution, and the need for classifier-grounded explainability evaluation. Future work will increase image resolution to 256×256, refine model architectures, augment the training set with synthetic images to improve classifier performance, and use the improved classifier to validate counterfactual generation and support explainability through difference maps and Grad-CAM comparisons. 
+Remaining challenges include class imbalance, image resolution, and the need for classifier-grounded explainability evaluation. Future work will increase image resolution to 256×256, refine model architectures, augment the training set with synthetic images to improve classifier performance, and use the improved classifier to validate counterfactual generation and support explainability through difference maps and Grad-CAM comparisons.
 
 # Ethical considerations
 
