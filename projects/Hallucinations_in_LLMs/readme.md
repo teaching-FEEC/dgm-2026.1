@@ -149,13 +149,13 @@ answer tokens = [answer_start, answer_end)
 Then, during the forward pass, FFN activations are captured for all tokens, but only the
 answer-token positions are selected:
 
-$$z_{\ell,t}\quad \text{for } t \in [\text{answer\_start}, \text{answer\_end})$$
+$$z{\ell,t}\quad \text{for } t \in [\text{answer\_start}, \text{answer\_end})$$
 
 If the answer is split into multiple tokens, their FFN activations are averaged:
 
 $$\Large\bar{z}_{i,\ell,j}=\frac{1}{\left|\mathcal{A}_i\right|}\sum_{t \in \mathcal{A}_i}z_{\ell,t,j}$$
 
-- **CETT: Causal Effect on Task Toke**
+- **CETT: Causal Effect on Task Token**
 
 After averaging the answer-token activations, each neuron is represented by a single value $\bar{z}_{i,\ell,j}$ for example $i$, layer $\ell$, and neuron $j$.
 
@@ -218,6 +218,8 @@ Since $y$ = 1 denotes hallucination, H-Neurons are defined as:
 
 
 $$\Large\mathcal{H}=\{j : w_j > 0\}$$
+
+.
 
 $$\Large\%H=\frac{|\mathcal{H}|}{524288}\times 100$$
 
