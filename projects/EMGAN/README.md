@@ -71,32 +71,32 @@ All the metrics presented in [2] will be maintained, as the evaluation will be m
 | SilentWear: an Ultra-Low Power Wearable System for EMG-based Silent Speech Recognition [10] | http://base1.org/ | Neckband emg recording of 4 speakers. No audio is given, this dataset will not be used. |
 | Sentence-Level Silent Speech Recognition Using a Wearable EMG/EEG Sensor System with AI-Driven Sensor Fusion and Language Model [11] | - | Only contains EEG and EMG signals, no audio, so this dataset will not be used. |
 
-| Corresponding muscle mentioned and approximations | EMG-UKA | Gaddy dataset | Tianjin Mandarin dataset | emg-VCTK | AVE Speech | CSL-EMG_Array | emg2speech dataset | Cross-Speaker dataset | SilentWear dataset |
-|--------------------------------------------------|--------|---------------|--------------------------|----------|------------|----------------|---------------------|------------------------|--------------------|
-| Zygomaticus major                                | ✔      | ✔             | ✔                        | ✔        |            |                | ✔                   | ✔                      |                    |
-| Zygomaticus minor                                |        | ~✔            | ~✔                       |          |            |                | ~✔                  | ~✔                     |                    |
-| Levator anguli oris                              | ✔      |               |                          |          | ✔          |                |                     |                        |                    |
-| Depressor anguli oris                            | ✔      | ✔             |                          |          |            |                |                     | ✔                      |                    |
-| Levator labii superioris                         |        | ✔             | ✔                        |          |            |                |                     | ✔                      |                    |
-| Risorius                                         |        | ~✔            | ✔                        |          | ✔          |                |                     | ~✔                     |                    |
-| Orbicularis oris                                 |        | ✔             |                          |          |            |                |                     | ✔                      |                    |
-| Mentalis                                         |        |               | ✔                        | ✔        |            |                |                     |                        |                    |
-| Masseter                                         |        | ✔             |                          | ✔        |            |                | ✔                   | ✔                      |                    |
-| Temporalis                                       |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Lateral pterygoid                                |        | ✔             |                          |          |            |                |                     | ✔                      |                    |
-| Platysma                                         |        |               |                          | ✔        |            |                |                     |                        |                    |
-| Sternohyoid                                      |        | ✔             |                          |          |            |                | ✔                   | ✔                      |                    |
-| Stylohyoid                                       |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Omohyoid                                         |        | ✔             |                          |          |            |                |                     | ✔                      |                    |
-| Anterior belly of digastric                      | ✔      |               | ✔                        |          | ✔          |                | ✔                   |                        |                    |
-| Mylohyoid                                        |        |               | ✔                        |          | ✔          |                |                     |                        |                    |
-| Genioglossus                                     |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Hyoglossus                                       |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Styloglossus                                     |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Palatoglossus                                    |        |               |                          |          |            | ✔              |                     |                        |                    |
-| Tongue                                           | ✔      |               |                          |          |            |                |                     |                        |                    |
-| Unspecified                                      |        |               |                          | ~✔       | ✔          |                |                     | ✔                      |                    |
-
+Here is a mapping of the position of EMG electrodes in the selected datasets:
+| Corresponding muscle mentioned and approximations | EMG-UKA | Gaddy dataset | emg-VCTK | AVE Speech | CSL-EMG_Array | emg2speech dataset | Cross-Speaker dataset |
+|--------------------------------------------------|--------|---------------|----------|------------|----------------|---------------------|------------------------|
+| Zygomaticus major                                | ✔      | ✔             | ✔        |            |                | ✔                   | ✔                      |
+| Zygomaticus minor                                |        | ~✔            |          |            |                | ~✔                  | ~✔                     |
+| Levator anguli oris                              | ✔      |               |          | ✔          |                |                     |                        |
+| Depressor anguli oris                            | ✔      | ✔             |          |            |                |                     | ✔                      |
+| Levator labii superioris                         |        | ✔             |          |            |                |                     | ✔                      |
+| Risorius                                         |        | ~✔            |          | ✔          |                |                     | ~✔                     |
+| Orbicularis oris                                 |        | ✔             |          |            |                |                     | ✔                      |
+| Mentalis                                         |        |               | ✔        |            |                |                     |                        |
+| Masseter                                         |        | ✔             | ✔        |            |                | ✔                   | ✔                      |
+| Temporalis                                       |        |               |          |            | ✔              |                     |                        |
+| Lateral pterygoid                                |        | ✔             |          |            |                |                     | ✔                      |
+| Platysma                                         |        |               | ✔        |            |                |                     |                        |
+| Sternohyoid                                      |        | ✔             |          |            |                | ✔                   | ✔                      |
+| Stylohyoid                                       |        |               |          |            | ✔              |                     |                        |
+| Omohyoid                                         |        | ✔             |          |            |                |                     | ✔                      |
+| Anterior belly of digastric                      | ✔      |               |          | ✔          |                | ✔                   |                        |
+| Mylohyoid                                        |        |               |          | ✔          |                |                     |                        |
+| Genioglossus                                     |        |               |          |            | ✔              |                     |                        |
+| Hyoglossus                                       |        |               |          |            | ✔              |                     |                        |
+| Styloglossus                                     |        |               |          |            | ✔              |                     |                        |
+| Palatoglossus                                    |        |               |          |            | ✔              |                     |                        |
+| Tongue                                           | ✔      |               |          |            |                |                     |                        |
+| Unspecified                                      |        |               | ~✔       | ✔          |                |                     | ✔                      |
 > Provide a description of what you concluded about this dataset. Suggested guiding questions or information to include:
 For this project, our models require datasets containing paired EMG and audio signals. Since this type of data is relatively rare, the 9 publicly available datasets listed above have all been surveyed. Their quality, compatibility, and suitability were thouroughly analysed and it was decided that, for now, the project will continue with the unique use of the Digital Voicing of Silent Speech [4] dataset. 
 
