@@ -1,8 +1,7 @@
-# `Geração de Imagens com IA: Desafios no Controle de Atributos sob Viés de Dados`
-(Sugestão: Geração de Imagens com IA: Diversidade, Imparcialidade e Confiabilidade dos Modelos Generativos)
+# `Geração de Imagens com IA: Desafios no Controle de Atributos`
 
-# `AI Image Generation: Challenges in Attribute Control under Data Bias`
-(Sugestão: AI Image Generation: Diversity, Fairness, and Reliability of Generative Models)
+
+# `AI Image Generation: Challenges in Attribute Control`
 
 ## Presentation
 
@@ -16,92 +15,84 @@ Link to the presentation slides: https://www.canva.com/design/DAHJ8pCJuqM/R9wQjw
 > | Gabriel Morais Alves | 323616 | Computer Engineering|
 > | Silvia A. P. Olivio | 224932 | Electrical Engineering|
 
-## Abstract
-The objective of this project is to understand and try to solve the problem of attribute binding in diffusion models, more specifically the Stable Diffusion model. Our methodology involves the realization of experiments on different components of Stable Diffusion's architecture so the reason of attribute binding problem happening can be deeply understood, providing solid evidence of why this happens in this model and which parts of the architecture contributes to that. The results obtained so far gives strong belief that this is a multi-component problem, from the way the trained dataset was created up to the cross-attention that the diffusion model makes on the tokens provided by CLIP.
+## Project Summary Description
+This project aims to investigate the behavior of text-to-image models, focusing on their ability to correctly interpret specific attributes present in the commands, such as color, for example.
+Diffusion models, such as Stable Diffusion, have achieved impressive results in generating realistic images. However, these models can encounter difficulties when asked to generate unusual combinations of attributes and objects, especially when these combinations conflict with predominant statistical patterns in the training data. For example, when using prompts such as "purple polar bear" or "pink blackboard in a classroom," the model tends to generate images that follow more common representations of the real world, such as white bears or green blackboards, ignoring the specified attribute.
+This behavior raises important questions about the reliability of these models, especially in scenarios where precise attribute control is essential. Furthermore, it is observed that prompt engineering techniques, often aided by language models, can improve the results, suggesting that the problem may be related not only to the generating model itself, but also to how the text is interpreted internally.
+Thus, this project seeks to better understand why these diffusion models fail to follow simple instructions when these conflict with statistical patterns learned during pre-training, contributing to the discussion on bias, multimodal alignment, and limitations in association in attribute binding.
 
-## Problem description and motivation
-The motivation for addressing this theme is due to the fact that nowadays AI is being used by different segments (not only software engineers anymore), providing productive boosting to people/companies, also allowing non-technical people to use AI on their jobs. However, for the cases that needs image generation (due to any purpose), attribute binding can be a problem since it fails to generate the desired output requested by the user, which can lead to non-productive works and also makes users waste their time since they could be generating the images by hand from the beginning (if they knew that the model wouldn't perform as expected).
 
-## Objective
-The objective of this project is to understand and try to solve the problem of attribute binding in diffusion models, more specifically the Stable Diffusion model.
+## Main goal of the project
 
-## Methodology
-The methodology proposed makes use of experiments on different components of Stable Diffusion's architecture so we can leverage concrete evidences of where the problem happens and why it happens. Since our main goal is to generate a synthetic dataset to fix statistical patterns learned by the model during pre-training, it is required to understand if that is a dataset-only problem - so we can be sure that the dataset itself can fix the issue or if it would be just a contributing part of a major fix. Having studied the entire architecture of the problem at hand, we also did experiments regarding the CLIP model (which embbeds the text), cross-attention mechanism (to verify which tokens receives more attention by the generative model) and attribute leaking (to understand if attributes leaks to unrequested parts of the output image).
+The aim of this project is to evaluate the ability of diffusion models to generate images from specific attributes defined in textual prompts, especially in cases where these attributes are rare or do not correspond to common representations in the real world. 
+For this evaluation, a synthetic and controlled dataset will be constructed containing explicit combinations of objects and attributes, some unusual, which will serve as the basis for the systematic evaluation of the model's behavior. The idea is to analyze the responses from the use of these synthetic datasets, measuring the performance of the interpretation and generation of images from the prompt instructions.
+The central hypothesis of this project is that diffusion models, such as Stable Diffusion, prioritize statistical patterns learned during training, called priors, over explicit instructions provided in the prompt, especially when there is a conflict between the requested attribute and the most common representation of the object. The analysis will reveal that the model may ignore or incorrectly apply rare attributes, highlighting limitations in the attribute binding process.
+The project is motivated by the observation that these models migth fail to correctly apply specific attributes, such as color, to objects. For example, commands like:
+•	“white carrot”,
+•	“pink classroom blackboard”,
+•	“blue banana” and
+•	“purple polar bear”.
+Some examples of the resulting images are shown in figures 1e 2. These images suggest that the model prioritizes statistical patterns over explicit user instructions in the prompt.
 
-### Experiment 1 - Dataset statistical problem
 
-### Experiment 2 - CLIP embeddings
 
-### Experiment 3 - Cross-attention mechanism
+| Pink Chalkboard       | Purple Orange       |
+| ------------- | ----------------- |
+| ![Generated image and metadata for the blue banana prompt](imagens/Pink_board_2.jpg) | ![Generated image and metadata for the blue banana prompt](imagens/orange_purple.jpeg) |
 
-### Experiment 4 - Attribute leakage
 
-### Datasets used
+![Generated image and metadata for the blue banana prompt](imagens/Pink_board_2.jpg)
+
+![Generated image and metadata for the blue banana prompt](imagens/orange_purple.jpeg) 
+
+## Output of the generative model
+
+The generative model will produce images from textual prompts containing controlled combinations of objects and attributes, such as "blue banana" or "pink blackboard," generated from synthetic datasets. In some cases, the model is expected to not correctly apply the requested attribute, generating images that reflect more common patterns rather than the one requested in the prompt.
+The outputs will be analyzed to check if:
+• the attribute was correctly applied to the object,
+• it was applied to incorrect parts of the image or
+• it was completely ignored.
+
+Include in this section a link to the presentation video of the project proposal (maximum 5 minutes). – Retirar depois
+
+
+## Proposed Methodology
+
+The project methodology will consist of the following steps: defining a controlled set of prompts, understanding the Stable Diffusion Model, building a synthetic dataset, generating images with a diffusion model and evaluating the results.
+In defining a controlled set of prompts, pairs of objects and attributes will be defined, primarily colors, including common and uncommon combinations, such as: "blue banana", "purple polar bear", and "pink chalkboard".
+In understanding the Stable Diffusion Model, the study of the Stable Diffusion Model aims to understand the datasets used, the model architecture, the methods used (CLIP, VAE, UNET, Cross Attention), and the responses generated.
+In constructing a synthetic dataset, create datasets containing images that accurately represent common and uncommon image and text combinations, with the goal of establishing ground truth.
+In diffusion model image generation, multiple images will be generated for each of the defined prompts using a pre-trained diffusion model and generative image models such as CNN-VAE, based on the generated synthetic datasets.
+In evaluating the results, the images generated by the synthetic datasets will be assessed based on criteria such as attribute correctness, whether the color is correct, and attribute location on the object. The evaluation will be performed by human inspection, through image analysis, and complemented by mathematical and statistical metrics.
+
+
+## Dataset of the Project
+
 In order to perform the experiments, two datasets were used: Conceptual Captions and LAION-400M.
 
 ### Conceptual Captions
-Conceptual Captions is a dataset containing (image-URL, caption) pairs designed for the training and evaluation of machine learned captioning systems. It was generated by Google and has more than 3 million images, paired with natural-language captions. Its images and their raw descriptions are harvested from the web, and therefore represent a wider variety of styles. The raw descriptions are harvested from the Alt-text HTML attribute associated with web images.
 
-Dataset paper: https://aclanthology.org/P18-1238.pdf
-Google's page about it: http://ai.google.com/research/ConceptualCaptions
+Conceptual Captions, Sharma et al, 2018, is a dataset containing image-URL, caption pairs designed for the training and evaluation of machine learned captioning systems. It was generated by Google and has more than 3 million images, paired with natural-language captions. Its images and their raw descriptions are harvested from the web and therefore represent a wider variety of styles. The raw descriptions are harvested from the Alt-text HTML attribute associated with web images.  
+
+### Statistics of Conceptual Captions
+| Dataset       | Quantity       |
+| ------------- | ----------------- |
+| Train | 3.3M |
+| Validation | 28K |
+| Test | 22.5K |
+
 
 ### LAION-400M
-LAION-400M is a subset of LAION-5B dataset used for pre-training Stable Diffusion model. Its image-text-pairs have been extracted from the Common Crawl web data dump and are from random web pages crawled between 2014 and 2021.
 
-LAION-400M webpage: https://laion.ai/blog/laion-400-open-dataset/
-LAION-400M paper: https://arxiv.org/abs/2111.02114
-
-### Reference algorithms
-CLIP's model was used to perform an experiment on it to verify how the text was being embedded. Alongside with it, comparisons between texts with different objects but same color and vice-versa also used CLIP's embedding algorithm.
-
-### Reason for our methods
-The reason why we performed different experiments on different components of the Stable Diffusion architecture is due to the fact that we couldn't say with full confidence that the problem relied only on the way the dataset was generated. If we really want to solve the attribute binding problem, we need to understand where this problem is raised and also which key components contribute to that, so it could give us confidence to perform fixes on some parts (the dataset in our case) with more certainty that it could really address the problem.
-
-## Relevant tools
-- Google Colab
-- CLIP model
-- Stable Diffusion model
-- LAION-400M dataset
-- Conceptual Captions dataset
-- Python
-
-### Evaluation methodology
-3 different datasets will be created:
-- Treated pairs (pairs that were actually included on the finetuning dataset). This is a training set (the finetuning one)
-- Held-out pairs (combinations equally hard and rare on LAION-400M dataset) that were not included on the finetuning dataset - This is a validation set
-- Control pairs (combinations that the model used to get right previously, before the finetuning) - a test set
-
-The first dataset (treated pairs) answers the question: the finetuning had some effect? The model can at least repeat what was thought?
-It contains combinations that were inserted on the finetuning dataset. e.g: "pink chalkboard", "white banana", "yellow polar bear". On this set, it is expected a good improvement, because if not even in this set it has improved, the finetuning completely failed - not even memorizing it was able to do. However, improvement only on this specific set isn't prove of anything, is the minimum. Because it doesn't prove that the model learned something, just that it at least memorized it.
-How to validate: generating images with some prompt (e.g. "a pink chalkboard") which then goes through some VLM-judge asking "what is the color of the chalkboard in this image" (for this case). This must be done before and after finetuning.
-
-The second dataset (held-out pairs) answers the question: The model understood the concept of binding a color to an object or it just memorized the specific cases shown?
-This is the most important one: If the model improves on some combination that wasn't seen during finetuning (and its rare, of course), it indicates that it learned to generalize how to bind a color to an object - it truly learned. If it fails to generalize to some unseen combination but gets right on some combination seen during finetuning, it has just memorized.
-How to validate: same way as above
-
-The third dataset (control pairs) answers the question: The boost that was given on hard cases messed what the model already knew how to do?
-Here improvement is not required, just stability. Rate of success before and after must be almost the same. If it degradated, then finetuning caused regression: we corrected the hard cases in expense of the easy ones.
-How to validate: same way as above
-
-### Datasets and evolution
-| Dataset       | Web Address       | Descriptive Summary                                   |
-| ------------- | ----------------- | ----------------------------------------------------- |
-| Conceptual Captions | http://ai.google.com/research/ConceptualCaptions - https://aclanthology.org/P18-1238.pdf | Dataset containing (image-URL, caption) pairs designed for the training and evaluation of machine learned captioning systems. It was generated by Google and has more than 3 million images, paired with natural-language captions.  |
-| LAION-400M | https://laion.ai/blog/laion-400-open-dataset/ - https://arxiv.org/abs/2111.02114 | LAION-400M is a subset of LAION-5B dataset used for pre-training Stable Diffusion model. Its image-text-pairs have been extracted from the Common Crawl web data dump and are from random web pages crawled between 2014 and 2021. |
-
-Conceptual Captions - Dataset containing (image-URL, caption) pairs designed for the training and evaluation of machine learned captioning systems. It was generated by Google and has more than 3 million images, paired with natural-language captions. Its images and their raw descriptions are harvested from the web, and therefore represent a wider variety of styles. The raw descriptions are harvested from the Alt-text HTML attribute associated with web images.
-
-LAION-400M - LAION-400M is a subset of LAION-5B dataset used for pre-training Stable Diffusion model. Its image-text-pairs have been extracted from the Common Crawl web data dump and are from random web pages crawled between 2014 and 2021.
-- 400 million pairs of image URL and the corresponding metadata
-- 400 million pairs of CLIP image embedding and the corresponding text
-- Several sets of kNN indices that enable quick search in the dataset
-- img2dataset library that enables efficient crawling and processing of hundreds of millions of images and their metadata from a list of URLs with minimal resource
-
+LAION-400M, Schuhmann et al, 2022, is a subset of LAION-5B, Schuhmann et al, 2021, dataset used for pre-training Stable Diffusion model. Its image-text-pairs have been extracted from the Common Crawl web data dump and are from random web pages crawled between 2014 and 2021.
+•	400 million pairs of image URL and the corresponding metadata
+•	400 million pairs of CLIP image embedding and the corresponding text
+•	Several sets of kNN indices that enable quick search in the dataset
+•	img2dataset library that enables efficient crawling and processing of hundreds of millions of images and their metadata from a list of URLs with minimal resource.
 No transformations and cleaning were done up to now due to the fact that the experiments were trying to understand the raise of the problem giving the current structure of the model - dataset as it was trained, for example. However, for our finetuning dataset transformations and cleaning will be required since there are a lot of problems on the way captions were captured on the original dataset.
 
-### Statistics:
 
-### LAION-400M
+### Statistics of LAION-400M
 | Statistic       | Quantity       |
 | ------------- | ----------------- |
 | Number of unique samples | 413M |
@@ -112,32 +103,27 @@ No transformations and cleaning were done up to now due to the fact that the exp
 | Number with height and width ≥ 256 | 211M |
 | Number with height or width ≥ 256 | 268M |
 
-### Conceptual Captions
-| Dataset       | Quantity       |
-| ------------- | ----------------- |
-| Train | 3.3M |
-| Validation | 28K |
-| Test | 22.5K |
+### Datasets and evolution
+| Dataset       | Web Address       | Descriptive Summary                                   |
+| ------------- | ----------------- | ----------------------------------------------------- |
+| Conceptual Captions | http://ai.google.com/research/ConceptualCaptions - https://aclanthology.org/P18-1238.pdf | Dataset containing (image-URL, caption) pairs designed for the training and evaluation of machine learned captioning systems. It was generated by Google and has more than 3 million images, paired with natural-language captions.  |
+| LAION-400M | https://laion.ai/blog/laion-400-open-dataset/ - https://arxiv.org/abs/2111.02114 | LAION-400M is a subset of LAION-5B dataset used for pre-training Stable Diffusion model. Its image-text-pairs have been extracted from the Common Crawl web data dump and are from random web pages crawled between 2014 and 2021. |
 
-### Workflow
 
-### Experiment 1 - Viés no dataset
+
+## Experiments, Experiment Results and Discussion
+
+### Experiment 1 - Dataset Analysis
+
 ![Resultado do experimento](imagens/flow_experimento1_dataset.png)
 
 ### Experiment 2 - Embeddings do CLIP
+
 ![Resultado do experimento](imagens/flow_experimento2_clip.png)
 
 ### Experiment 3 - Cross-attention mechanism
 
 ![Resultado do experimento](imagens/flow_experimento3_cross_attention.jpg)
-
-## Experiments, results and discussion of results
-
-### Experiment 1 - Viés no dataset
-
-### Experiment 2 - Embeddings do CLIP
-
-### Experiment 3 - Cross-attention mechanism
 
 This experiment aimed to analyze the behavior of cross-attention maps in a text-to-image model, with the goal of understanding how the model distributes attention between object tokens and attribute tokens during image generation.
 
@@ -249,137 +235,142 @@ The metric analysis shows that object tokens were more spatially localized than 
 The BindingScore was also higher for common object-color combinations than for rare ones in the analyzed comparisons. This supports the hypothesis that the model may favor statistical regularities learned during training.
 
 Overall, the experiment suggests a limitation in attribute binding: the model may represent individual concepts, such as banana and blue, but still fail to combine them correctly when the requested combination is rare or conflicts with common real-world patterns.
-## Conclusion
-By analyzing the results from our experiments, we concluded that the problem of attribute binding on diffusion models, in this case Stable Diffusion, comes from different components of the architecture instead of having just one responsible. The way the training dataset was generated, the problem of embedding representation on CLIP and the cross-attention mechanism failing to pay attention on certain attributes combined makes this an intrinsic problem of this architecture.
-
-## Bibliographic references
-
-- Conceptual Captions: A Cleaned, Hypernymed, Image Alt-text Dataset For Automatic Image Captioning: https://aclanthology.org/P18-1238.pdf
-
-- LAION-400M: Open Dataset of CLIP-Filtered 400 Million Image-Text Pairs: https://arxiv.org/abs/2111.02114
-
-- LAION-5B: An open large-scale dataset for training next generation image-text models: https://arxiv.org/abs/2210.08402
-
-- Rombach, R. et al. (2021). “High-Resolution Image Synthesis with Latent Diffusion
-Models”. Em: CoRR abs/2112.10752. url: https://arxiv.org/abs/2112.10752 (ver p. 20).
-
-- Ho, J., A. Jain e P. Abbeel (2020). “Denoising Diffusion Probabilistic Models”. Em: CoRR
-abs/2006.11239. url: https://arxiv.org/abs/2006.11239 (ver p. 20).
-
-- Nichol, A. et al. (2021). “GLIDE: Towards Photorealistic Image Generation and Editing
-with Text-Guided Diffusion Models”. Em: CoRR abs/2112.10741. url: https://arxiv.org/abs/2112.10741 (ver p. 20).
-
-## Project Summary Description
-
-### Description of the project theme, including generating context and motivation.
-
-This project aims to evaluate the behavior of text-to-image generative AI models, focusing on their ability to correctly interpret simple textual descriptions. The rapid advancement of generative models has enabled high-quality image synthesis from text; however, these models often exhibit limitations related to reliability, bias, and control over specific attributes.
-(This project aims to evaluate the behavior of text-to-image generative AI models, focusing on their ability to correctly interpret simple textual descriptions. The rapid advancement of generative models has enabled high-quality image synthesis from text; however, these models often exhibit limitations related to diversity, fairness, and reliability.)
-
-The main goal of this project is to investigate how pre-trained open-source models, such as Stable Diffusion, available through platforms like Hugging Face, handle prompts where there is a potential 'limitation' between the user’s input and the statistical patterns learned during training.The project is motivated by the observation that these models frequently fail to correctly apply specific attributes—such as color—to objects. For example, prompts such as:
-- “white carrot”,
-- “pink classroom blackboard” and
-- “purple polar bear”.
-  
-Often result in images where the model ignores the requested attribute and instead generates outputs aligned with common real-world representations, such as orange carrots, green/black boards, white polar bears, as the examples below:
-
-![Resultado do experimento](imagens/Pink_board_2.jpg)
-![Resultado do experimento](imagens/orange_purple.jpeg)
-![Resultado do experimento](imagens/yellow_cloud.jpeg)
-
-This behavior suggests that the model prioritizes learned statistical correlations over explicit user instructions, revealing a limitation in its ability to disentangle attributes, e.g., color, from object identity.
-
-The central research question of this project is:
-
-> #### *Is this limitation primarily caused by biases in the training data distribution, or by constraints in the model architecture itself?*
-(Is this limitation primarily caused by the training data or by constraints in the model's architecture itself?)
 
 
-## Main Goal
+### Experiment 4 - CVAE – Linear and CNN-CVAE
 
-The main objective of this project is to evaluate whether the application of fine-tuning techniques to pre-trained open-source text-to-image generation models — Stable Diffusion — improves the fidelity in representing specific visual attributes, such as color, with respect to the instructions provided in the prompt.
+Based on the papers by Rombach et al., 2021, and Ho et al., 2020, this study sought to identify the concepts used to develop models that generate an image from text, more specifically analyzing the Stable Diffusion Model.
+Using the model available at the following address https://yeri.ai/pt/app/image-generator. It can be observed that it can generate images from text, as shown in Figure 3. However, it presents some errors in its execution, as identified in Figures 1 and 4.
 
-Specifically, the study aims to investigate whether, after fine-tuning with datasets that present greater diversity of these attributes, e.g. different colors applied to the same object, the model is able to correctly apply the requested color to specific regions of the image (such as a classroom blackboard), or whether it still exhibits limitations in attribute localization and control, resulting in the incorrect application of color to other regions of the scene (such as walls or adjacent objects), especially in elements that exhibit strong bias in the training data, such as classroom blackboards, which are traditionally associated with green or black colors.
-(Specifically, the study aims to investigate whether, after fine-tuning with datasets that present greater diversity of these attributes, e.g. different colors applied to the same object, the model is able to correctly apply the requested command in the prompt or whether it still exhibits limitations, resulting in an incorrect response to the user's request in the prompt.)
+The first problem, shown in Figure 1, demonstrates that the model failed to correctly apply the color attribute, pink, to the object, classroom blackboard. The second problem, shown in Figure 4, demonstrates that after identifying two objects, car and frog, the model failed to place them in a single figure as per the text "Frog inside the car".
 
-# Main Hypothesis
-The main hypothesis of this project is that the inability of text-to-image models to correctly apply specific attributes is primarily influenced by biases in the training data distribution, which leads the model to favor statistically dominant representations over explicit user instructions.
-(The main hypothesis of this project is that the inability of text-to-image models to correctly apply specific attributes is primarily influenced by the statistical prioritization of patterns, which leads the model to favor dominant representations over explicit user instructions, such as a classroom blackboard traditionally associated with green or black colors.)
 
-# Secondary Questions 
-- To support the main hypothesis, the project investigates the following secondary questions:
-- To what extent do training data biases influence the model’s output when attributes conflict with common representations?
-- Can fine-tuning with controlled data improve the model’s ability to correctly apply attributes?
-- Does the model architecture itself limit the ability to disentangle attributes from objects?
-- Are alternative architectures (e.g., Beta-VAE) more effective in handling attribute control?
+| Green Dog on the Table    | A Frog inside the car    |
+| ------------- | ----------------- |
+| ![Generated image and metadata for the blue banana prompt](imagens/Imagem_CachorroVerde.png) | ![Generated image and metadata for the blue banana prompt](imagens/Imagem_SapodentroCarro.png) |
 
-# Expected Output of the Generative Model.
-The output of the generative model in this project will consist of images generated from controlled textual prompts, with a specific focus on attribute manipulation, especially color.
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_CachorroVerde.png)
 
-In the initial state (pre-trained model), the system is expected to generate images influenced by learned statistical patterns, often failing to correctly apply uncommon attributes specified in the prompt.
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_SapodentroCarro.png)
 
-After applying fine-tuning with a synthetic dataset composed of objects with non-standard attribute combinations (e.g., unusual colors), the expected state-of-the-art outcome is that the model becomes capable of correctly modifying object attributes according to the prompt specification.
-(After applying fine-tuning to a synthetic dataset, including combinations of non-standard attributes, such as unusual colors, the expected outcome is that the model be able of correctly modifying object attributes according to the prompt's requests.)
 
-In particular, the improved model should be able to:
 
-- Correctly apply specified attributes, such as color, to objects, even when they contradict common real-world representations
-- Cuidado: Reduce bias toward dominant patterns learned during pre-training
-- Generate images that are more consistent with the input prompt
+The idea was to study the functioning of the Stable Diffusion model in the first problem, figure 1, which is to correctly use the color attribute in the object according to the prompt instructions, which is "pink classroom chalkboard". Based on the paper by Rombach et al., 2021, it was possible to identify the diagram in Figure 6 and based on the results of experiments 1 to 4, it was possible to identify the possibility of solving the problem presented in Figure 1 using the CVAE and CNN-CVAE model.
 
-## Proposed Methodology
+ ![Generated image and metadata for the blue banana prompt](imagens/Imagem_StableDiffusion.png)
 
-# Dataset
-Generate a synthetic dataset with non-standardized object attributes, e.g., colored blackboards, and use LoRA fine-tuning to improve attribute control in a pre-trained text-to-image model.
+In experiment 1 - Dataset Analysis, the Conceptual Captions database was analyzed using a sample of 1000 valid records out of 200,000 records read. From these valid records, figure 6, which presents the heat map of the pattern, and figure 7, which presents the heat map of the PPMI, were generated. In figure 6, it can be observed that the object "blackboard" is frequently associated with the colors black, white, and green, but not with color pink. In figure 7, it can be observed that semantically the object "blackboard" is frequently associated with the colors black, white, and green, but not with color pink.
 
-## Which dataset(s) the project intends to use, justifying the choice(s).
-A synthetic dataset synthesized by the group containing non-standardized object attributes, e.g., colored blackboards. Our choice for this type of data was due to the context of the problem, in which is very specific for some type of attributes, which makes it difficult for us to encounter existent datasets containing exactly the type of attribute we need.
+| Heat map of the pattern    | PPMI heat map    |
+| ------------- | ----------------- |
+| ![Generated image and metadata for the blue banana prompt](imagens/Imagem_MapaCalor.png) | ![Generated image and metadata for the blue banana prompt](imagens/Imagem_MapaCalorSemantica.png) |
 
-## Which generative modeling approaches the group already sees as interesting to be studied.
-The following methods are considered within the scope of this project:
-- Diffusion-based models, particularly Latent Diffusion Models used in Stable Diffusion, which serve as the primary architecture for image generation.
-- LoRA (Low-Rank Adaptation), which will be used as an efficient approach for fine-tuning the pre-trained model with controlled data.
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_MapaCalor.png) 
 
-**If the fine-tuned dataset does not yield satisfactory results and sufficient time is available, VAE-based models may be explored, with a focus on analyzing attribute disentanglement. However, this step is considered optional and may be addressed as future work, depending on time constraints and overall project scope.**
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_MapaCalorSemantica.png)
 
-## Reference articles already identified and that will be studied or used as part of the project planning.
 
-- Rombach, R. et al. (2021). “High-Resolution Image Synthesis with Latent Diffusion
-Models”. Em: CoRR abs/2112.10752. url: https://arxiv.org/abs/2112.10752 (ver p. 20).
+In experiment 2 - Embeddings CLIP, it can be noted that the green chalkboard pattern, figure 8, which is not the prompt request, is the beginning of the model's denoising procedure. Figure 9 shows that the green frog pattern, which is the prompt request, is the beginning of the model's denoising procedure.
 
-- Ho, J., A. Jain e P. Abbeel (2020). “Denoising Diffusion Probabilistic Models”. Em: CoRR
-abs/2006.11239. url: https://arxiv.org/abs/2006.11239 (ver p. 20).
 
-- Nichol, A. et al. (2021). “GLIDE: Towards Photorealistic Image Generation and Editing
-with Text-Guided Diffusion Models”. Em: CoRR abs/2112.10741. url: https://arxiv.org/abs/2112.10741 (ver p. 20).
+| Denoising procedure chalkboard    | Denoising procedure Frog    |
+| ------------- | ----------------- |
+| ![Generated image and metadata for the blue banana prompt](imagens/Imagem_DenoisingLousa.png) | ![Generated image and metadata for the blue banana prompt](imagens/Imagem_DenoisingSapo.png) |
 
-## Tools to be used (based on the group’s current vision of the project).
-- Python
-- PyTorch
-- Hugging Face Diffusers
-- Stable Diffusion
-- LoRA (Low-Rank Adaptation)
-- CLIP (for evaluation)
-- Google Colab (for training and experiments)
 
-## Expected results.
-We expect to verify that the fine-tuning techniques were indeed helpful into adjusting the addressed problem, and that will be verified using the proposed evaluation metrics:
-- CLIP - measurement of similarity (prompt, image)
-- Attribute Binding Evaluation
-- VQA-based evaluation - usage of vision language model to answer questions and compare with expected results
-- Human evaluation - realism and subtle failures
-- Compositional benchmarks - success rate of correct binding
+This result shows that the model retrieves the image stored in the training phase and that, possibly, in the future Cross Attention phase it would try to assign a color to the object if the text in the image were different from that requested in the prompt.
 
-## Proposal for evaluating the synthesis results.
-CLIP Score: measuring the semantic alignment between generated images and input prompts
+In experiment 3 - Cross Attention, it can be noted that when the model starts the process by presenting an image that does not match the prompt request, it is unable to correctly assign the color to the object, as can be seen in figures 10 and 11.
 
-## Schedule
+
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_CrossAttentionBanana.png)
+
+![Generated image and metadata for the blue banana prompt](imagens/Imagem_CrossAttentionUrso.png)
+Figura 11
+
+Therefore, noting that the training data, experiment 1 - Dataset Analysis, does not present the necessary data to satisfy the request of the prompt, and that in the observed steps of experiment 2 - Generation Behavior, and in experiment 3 - Cross attention, the current Stable Diffusion model presented at https://yeri.ai/pt/app/image-generator is unable to meet the request made in the prompt.
+
+Observing Figure 5, the structure of the Stable Diffusion model, one solution that can be proposed is to try to solve the database problem from the beginning of the model training. The idea is to generate statistically relevant databases in order to obtain a response, for training model, that answers the prompt request. Considering the size of the database and the number of parameters of the Stable Diffusion model, it was identified that it is more viable to work with a smaller database, a sample of the Conceptual Captions database, as well as to work with a simpler model, such as the CVAE and CNN-CVAE algorithms, to generate the image correctly, as requested in the prompt. The CVAE algorithm is described below, and the code will be available in the notebook named CVAE.
+
+
+Algorithm 1: CVAE - Conditional Image Generation 
+
+Input: Training set T = {(xℓ, cℓ) : ℓ = 1, ..., L},
+
+where:
+    xℓ = training image
+    cℓ = conditional prompt (object + color)
+
+    Latent dimension z, trained CVAE model θ, and input prompt c.
+
+Output: Generated image x̂.
+
+1. Load the trained CVAE parameters θ;
+2. Encode the conditional prompt cinto a condition vector ec;
+3. Sample a latent vectorz ~ N(0, I);
+4. Concatenate latent vector and condition:h = [z, ec];
+5. Pass h through the decoder network: x̂ = Decoderθ(h);
+6. Apply sigmoid normalization to produce pixel intensities in the interval [0,1];
+7. Reshape x̂ into RGB image format (3 × 64 × 64);
+8. Return generated image x̂.
+
+Another solution would be to study and propose a change to the Cross Attention algorithm so that it can generate the image taking into account the prompt request in the intermediate layers of the UNet.
+
+
+### Evaluation methodology
+3 different datasets will be created:
+- Treated pairs (pairs that were actually included on the finetuning dataset). This is a training set (the finetuning one)
+- Held-out pairs (combinations equally hard and rare on LAION-400M dataset) that were not included on the finetuning dataset - This is a validation set
+- Control pairs (combinations that the model used to get right previously, before the finetuning) - a test set
+
+The first dataset (treated pairs) answers the question: the finetuning had some effect? The model can at least repeat what was thought?
+It contains combinations that were inserted on the finetuning dataset. e.g: "pink chalkboard", "white banana", "yellow polar bear". On this set, it is expected a good improvement, because if not even in this set it has improved, the finetuning completely failed - not even memorizing it was able to do. However, improvement only on this specific set isn't prove of anything, is the minimum. Because it doesn't prove that the model learned something, just that it at least memorized it.
+How to validate: generating images with some prompt (e.g. "a pink chalkboard") which then goes through some VLM-judge asking "what is the color of the chalkboard in this image" (for this case). This must be done before and after finetuning.
+
+The second dataset (held-out pairs) answers the question: The model understood the concept of binding a color to an object or it just memorized the specific cases shown?
+This is the most important one: If the model improves on some combination that wasn't seen during finetuning (and its rare, of course), it indicates that it learned to generalize how to bind a color to an object - it truly learned. If it fails to generalize to some unseen combination but gets right on some combination seen during finetuning, it has just memorized.
+How to validate: same way as above
+
+The third dataset (control pairs) answers the question: The boost that was given on hard cases messed what the model already knew how to do?
+Here improvement is not required, just stability. Rate of success before and after must be almost the same. If it degradated, then finetuning caused regression: we corrected the hard cases in expense of the easy ones.
+How to validate: same way as above
+
+### Expected Results
+
+It is expected that diffusion models will consistently have difficulty correctly applying attributes when these attributes are not aligned with dominant statistical patterns.
+In particular, it is expected that:
+• rare attributes may be ignored,
+• the model will exhibit low consistency in these cases and
+• systematic errors will occur in attribute binding.
+
+These results should reinforce the hypothesis that the model strongly depends on distributions learned during training, highlighting limitations in the fine control of attributes.
+
+### Schedule
 
 The following schedule is proposed for each stage of the project:
 
 ![Schedule - IA Generative Project](https://github.com/user-attachments/assets/90eafcc8-3f88-4fc1-b792-126e120d7ae2)
 
 
-## Bibliographic References
 
-- Vice, J., Akhtar, N., Sigal, L. et al. On the fairness, diversity and reliability of text-to-image generative models. Artif Intell Rev 59, 57 (2026). https://doi.org/10.1007/s10462-025-11424-2
+
+### Conclusion
+By analyzing the results from our experiments, we concluded that the problem of attribute binding on diffusion models, in this case Stable Diffusion, comes from different components of the architecture instead of having just one responsible. The way the training dataset was generated, the problem of embedding representation on CLIP and the cross-attention mechanism failing to pay attention on certain attributes combined makes this an intrinsic problem of this architecture.
+
+
+
+
+
+### Bibliographic references
+
+Sharma, P et al (2018). Conceptual Captions: A Cleaned, Hypernymed, Image Alt-text Dataset For Automatic Image Captioning. Url: https://aclanthology.org/P18-1238.pdf 
+
+Schuhmann, C et al (2021): LAION-400M: Open Dataset of CLIP-Filtered 400 Million Image-Text Pairs. Url: https://arxiv.org/abs/2111.02114
+
+Schuhmann, C et al (2022): LAION-5B: An open large-scale dataset for training next generation image-text. Url: https://arxiv.org/abs/2210.08402
+
+Rombach, R. et al. (2021). “High-Resolution Image Synthesis with Latent Diffusion Models”. Em: CoRR abs/2112.10752. url: https://arxiv.org/abs/2112.10752 (ver p. 20).
+
+Ho, J., A. Jain e P. Abbeel (2020). “Denoising Diffusion Probabilistic Models”. Em: CoRR abs/2006.11239. url: https://arxiv.org/abs/2006.11239 (ver p. 20).
+
+Nichol, A. et al. (2021). “GLIDE: Towards Photorealistic Image Generation and Editing with Text-Guided Diffusion Models”. Em: CoRR abs/2112.10741. url: https://arxiv.org/abs/2112.10741 (ver p. 20).
