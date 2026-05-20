@@ -67,14 +67,7 @@ Presentation Link [here](https://docs.google.com/presentation/d/1CM4DDgOnC9EBGzu
 To implement the aforementioned pipelines within the project's timeframe, we will utilize the following frameworks and libraries:
 - Python & PyTorch: The core programming language and deep learning framework for model training, fine-tuning, and tensor operations.
 - [Open3D](https://github.com/isl-org/Open3D): Python library for 3D point cloud processing and visualization.
-
-We expect the Generative Modeling pipeline to successfully infer the occluded bottom of road potholes, providing a structurally coherent and probabilistically accurate 3D point cloud that overcomes the limitations of shadowed, textureless cavities. This high-fidelity representation will allow for later precise volumetric calculations of the road damage. In contrast, while we expect the alternative Regression-based pipeline to process images significantly faster and with lower memory footprint, it will likely exhibit smoothed, inaccurate topologies inside deep cavities, demonstrating the fundamental trade-off between computational efficiency and geometric fidelity.
-
-Evaluating generated 3D point clouds of strictly concave surfaces requires specialized metrics. Standard metrics like the Chamfer Distance (CD) often mask clustered points and fail to capture geometric fidelity on jagged edges. To rigorously evaluate our models against the high-precision gypsum mold ground truth, we will employ the following state-of-the-art metrics:
-- **Surface Normal Concordance (SNC)**: Instead of merely comparing Euclidean coordinates, SNC measures surface similarity by comparing estimated point normals. This is crucial for potholes, as it evaluates whether the model accurately captured the steep, jagged slopes of the crater rather than just outputting a flat, smoothed depression.
-- **Density-Aware Chamfer Distance (DCD)**: An improvement over standard CD that penalizes points clustering unevenly, ensuring a homogeneous spatial distribution of the generated point cloud.
-- **Root Mean Square Error (RMSE)**: Used strictly to quantify the absolute depth deviation between the generated topology and the ground truth, validating the viability of the model for real-world volume estimation tasks.
-
+- Point-E from OpenAI
 
 ### Datasets and Evolution
 
