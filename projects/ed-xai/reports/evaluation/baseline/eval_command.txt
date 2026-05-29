@@ -1,0 +1,5 @@
+python -m FakeVLM_extended.eval \
+      --model-local-path ../models/FakeVLM \
+      --data-path ../data/external/FakeClue/data_json/test.json \
+      --image-folder ../data/external/FakeClue/test \
+      --output-path ../reports/baseline/eval_results.json

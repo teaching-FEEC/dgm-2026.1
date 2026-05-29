@@ -1,0 +1,7 @@
+python -m FakeVLM_extended.eval \
+      --model-local-path ../models/FakeVLM \
+      --freq-projector-checkpoint ../models/FakeVLM_extended/stage2/freq_projector.pt \
+      --lora-adapter-path ../models/FakeVLM_extended/stage2 \
+      --data-path ../data/external/FakeClue/data_json/test_frequency.json \
+      --image-folder ../data/external/FakeClue/test \
+      --output-path ../reports/fft/eval_results.json
