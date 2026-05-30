@@ -47,8 +47,10 @@ class FFTExtractor(BaseFrequencyExtractor):
         return torch.stack(tensors)
 
     def forward(self, x: Tensor) -> Tensor:
+        input_dtype = x.dtype
+        x = x.float()
         freq = torch.fft.fft2(x, dim=(-2, -1))
         freq = torch.fft.fftshift(freq, dim=(-2, -1))
         feature = self._transform(freq)
         pooled = self.pool(feature)
-        return pooled.flatten(1)
+        return pooled.flatten(1).to(input_dtype)

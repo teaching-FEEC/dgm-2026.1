@@ -6,6 +6,7 @@
 #   2. Adds num_freq_tokens to the image token expansion count (576 -> 577)
 #   3. Returns freq_pixel_values in the batch dict
 
+import logging
 import re
 from inspect import isfunction
 from typing import Any, Dict, List, Optional, Sequence, Union
@@ -14,6 +15,8 @@ import numpy as np
 import PIL
 import torch
 from transformers import AutoConfig, AutoProcessor, PreTrainedTokenizer
+
+logging.getLogger("transformers.processing_utils").setLevel(logging.ERROR)
 from transformers.image_utils import get_image_size, to_numpy_array
 from transformers.models.llava.processing_llava import LlavaProcessorKwargs
 from transformers.tokenization_utils_base import BatchEncoding

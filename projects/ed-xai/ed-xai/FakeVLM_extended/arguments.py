@@ -33,6 +33,10 @@ class DataArguments:
     image_folder: Optional[str] = field(default=None)
     user_key: Optional[str] = field(default="human")
     assistant_key: Optional[str] = field(default="gpt")
+    eval_split_ratio: float = field(
+        default=0.0,
+        metadata={"help": "Fraction of training data to hold out for eval (ignored if eval_data_path is set)."},
+    )
 
 
 @dataclass
