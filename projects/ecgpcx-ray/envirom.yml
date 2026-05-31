@@ -1,0 +1,23 @@
+name: ia376_env
+channels:
+  - pytorch
+  - nvidia
+  - defaults
+
+dependencies:
+  - python=3.10
+  - ipython
+  - jupyterlab
+  - matplotlib
+  - notebook
+  - numpy
+  - pandas
+  - pip
+  - python-dotenv
+  - ruff
+  - scikit-learn
+  - pytorch
+  - pytorch-cuda=11.8
+  - torchaudio
+  - torchvision
+  - ipywidgets

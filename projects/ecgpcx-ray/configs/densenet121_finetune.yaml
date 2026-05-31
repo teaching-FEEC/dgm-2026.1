@@ -1,0 +1,25 @@
+experiment_name: densenet121_finetune
+
+model:
+  name: FrozenDenseNet121
+  unfreeze_from: denseblock4  # CheXNet-style: descongela denseblock4 + norm5 + head
+  dropout: null
+
+data:
+  img_size: [224, 224]
+  augmentation: true
+  class_balancing: pos_weight  # weighted_random_sampler | pos_weight | none
+  augmentations:
+    random_rotation_degrees: 10
+    horizontal_flip_p: 0.0  # desligado: tórax é anatomicamente assimétrico (coração à esq.)
+    random_resized_crop_scale: [0.9, 1.0]
+
+training:
+  batch_size: 32
+  head_lr: 1.0e-3
+  backbone_lr: 1.0e-5
+  num_epochs: 30
+  weight_decay: 1.0e-4
+  early_stopping_patience: 7
+
+seed: 42

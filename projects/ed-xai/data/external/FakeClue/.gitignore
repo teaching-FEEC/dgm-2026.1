@@ -1,0 +1,7 @@
+test/
+train/
+data_json/*.json
+data_json/FakeImageDetection/*.json
+data_json/GANDCTAnalysis/*.json
+data_json/SPAI/*.json
+data_json/NPR/*.json

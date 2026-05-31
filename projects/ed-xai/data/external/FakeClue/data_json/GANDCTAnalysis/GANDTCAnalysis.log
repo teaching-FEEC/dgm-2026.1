@@ -1,0 +1,131 @@
+============================================================
+Split: train | Model: ridge_pixel
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.4193 (43755/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  22745
+  TN (real->real):  21010
+  FP (real->fake):  14937
+  FN (fake->real):  45651
+
+Per-category accuracy:
+  animal: 0.4868 (7440/15285)
+  deepfake: 0.2440 (5847/23961)
+  doc: 0.3985 (4799/12042)
+  human: 0.4582 (4159/9077)
+  object: 0.4740 (8912/18800)
+  satellite: 0.5075 (9199/18125)
+  scene: 0.4819 (3399/7053)
+============================================================
+
+============================================================
+Split: train | Model: ridge_dct
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.4997 (52135/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  32208
+  TN (real->real):  19927
+  FP (real->fake):  16020
+  FN (fake->real):  36188
+
+Per-category accuracy:
+  animal: 0.4568 (6982/15285)
+  deepfake: 0.7973 (19105/23961)
+  doc: 0.3311 (3987/12042)
+  human: 0.2466 (2238/9077)
+  object: 0.4794 (9013/18800)
+  satellite: 0.4706 (8529/18125)
+  scene: 0.3234 (2281/7053)
+============================================================
+
+============================================================
+Split: train | Model: lasso_dct
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.3125 (32608/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  5856
+  TN (real->real):  26752
+  FP (real->fake):  9195
+  FN (fake->real):  62540
+
+Per-category accuracy:
+  animal: 0.3581 (5474/15285)
+  deepfake: 0.2001 (4795/23961)
+  doc: 0.3053 (3676/12042)
+  human: 0.2041 (1853/9077)
+  object: 0.3535 (6645/18800)
+  satellite: 0.4712 (8540/18125)
+  scene: 0.2304 (1625/7053)
+============================================================
+
+============================================================
+Split: test | Model: ridge_pixel
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.4156 (2078/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  1030
+  TN (real->real):  1048
+  FP (real->fake):  760
+  FN (fake->real):  2162
+
+Per-category accuracy:
+  animal: 0.4753 (356/749)
+  deepfake: 0.2432 (284/1168)
+  doc: 0.3958 (228/576)
+  human: 0.4293 (173/403)
+  object: 0.4960 (430/867)
+  satellite: 0.5166 (452/875)
+  scene: 0.4282 (155/362)
+============================================================
+
+============================================================
+Split: test | Model: ridge_dct
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.5038 (2519/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  1525
+  TN (real->real):  994
+  FP (real->fake):  814
+  FN (fake->real):  1667
+
+Per-category accuracy:
+  animal: 0.4780 (358/749)
+  deepfake: 0.7962 (930/1168)
+  doc: 0.3316 (191/576)
+  human: 0.2754 (111/403)
+  object: 0.4429 (384/867)
+  satellite: 0.4937 (432/875)
+  scene: 0.3122 (113/362)
+============================================================
+
+============================================================
+Split: test | Model: lasso_dct
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.3184 (1592/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  267
+  TN (real->real):  1325
+  FP (real->fake):  483
+  FN (fake->real):  2925
+
+Per-category accuracy:
+  animal: 0.3712 (278/749)
+  deepfake: 0.2021 (236/1168)
+  doc: 0.3229 (186/576)
+  human: 0.2010 (81/403)
+  object: 0.3483 (302/867)
+  satellite: 0.4869 (426/875)
+  scene: 0.2293 (83/362)
+============================================================

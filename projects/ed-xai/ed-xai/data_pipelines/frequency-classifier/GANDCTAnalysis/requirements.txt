@@ -1,0 +1,5 @@
+tensorflow>=2.16
+tf-keras>=2.16
+numpy>=1.22
+Pillow>=9.0
+tqdm>=4.40
