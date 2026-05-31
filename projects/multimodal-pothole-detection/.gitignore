@@ -13,4 +13,6 @@ Thumbs.db
 /notebooks/from_kaggle_poth/
 /artifacts/**/*.csv
 artifacts/**/*.png
+artifacts/**/*.pt
 docs/
+point_e_model_cache/
