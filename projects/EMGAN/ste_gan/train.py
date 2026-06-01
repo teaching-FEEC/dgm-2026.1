@@ -202,14 +202,8 @@ class trainer():
                         torch_device: str,
                         debug: bool,
                         emg_enc_ckpt: Path = None):
-        
-        # setting seeds
-        np.random.seed(self.cfg.train.random_seed)
-        torch.cuda.manual_seed(self.cfg.train.random_seed)
-        torch.manual_seed(self.cfg.train.random_seed)
-        random.seed(self.cfg.train.random_seed)
-
-        # instantiated variables
+                        
+       # instantiated variables
         self.cfg = cfg
         self.model_directory = model_directory
         self.checkpoint = checkpoint
@@ -217,7 +211,14 @@ class trainer():
         self.debug = debug
         self.emg_enc_ckpt = emg_enc_ckpt
         self.mode = None # train or valid
+        
+        # setting seeds
+        np.random.seed(self.cfg.train.random_seed)
+        torch.cuda.manual_seed(self.cfg.train.random_seed)
+        torch.manual_seed(self.cfg.train.random_seed)
+        random.seed(self.cfg.train.random_seed)
 
+ 
         # hyperparameters
         self.device = torch.device(self.torch_device)
 
