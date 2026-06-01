@@ -12,7 +12,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/NuitJack/dgm-2026.1.git
+git clone --recurse-submodules https://github.com/NuitJack/dgm-2026.1.git
 cd dgm-2026.1
 ```
 
