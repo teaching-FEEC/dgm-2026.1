@@ -10,7 +10,7 @@ RUN cd dgm-2026.1/projects/EMGAN && \
     conda init && \
     source ~/.bashrc && \
     conda run -n ste-gan pip install -r requirements.txt && \
-    (cd ste-gan && conda run -n ste-gan pip install -e .) && \
+    conda run -n ste-gan pip install -e . && \
     conda run -n ste-gan python -c "\
 import torch.nn as nn; \
 nn.utils.parametrizations.weight_norm = nn.utils.weight_norm; \
