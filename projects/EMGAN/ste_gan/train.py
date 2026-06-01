@@ -2,12 +2,19 @@
 
 Adapted from: https://github.com/descriptinc/cargan/blob/master/cargan/train.py
 """
+# import os #  - Adaptation for running locally
+# print("Before:", os.getcwd())
+# Change to a new directory path
+# if not(os.getcwd().endswith('EMGAN')):
+#     os.chdir('projeto/dgm-2026.1/projects/EMGAN')
+
 import argparse
 import functools
 import itertools
 import logging
 import random
 import sys
+sys.path.append(".")
 import time
 from pathlib import Path
 
@@ -175,7 +182,7 @@ class our_dataloader():
         train_data_set: EMGDataset = self.train_loader.dataset
         train_data_set.save_session_and_speaking_mode_mapping_json(model_directory)
 
-    def data_from_dict(obj, dict, speech_feature_type): # extracts all input data orderly
+    def data_from_dict(self, obj, dict, speech_feature_type): # extracts all input data orderly
 
         # common data
         x_t = dict[DataType.REAL_EMG].to(obj.device)
@@ -204,10 +211,10 @@ class trainer():
                         emg_enc_ckpt: Path = None):
         
         # setting seeds
-        np.random.seed(self.cfg.train.random_seed)
-        torch.cuda.manual_seed(self.cfg.train.random_seed)
-        torch.manual_seed(self.cfg.train.random_seed)
-        random.seed(self.cfg.train.random_seed)
+        np.random.seed(cfg.train.random_seed)
+        torch.cuda.manual_seed(cfg.train.random_seed)
+        torch.manual_seed(cfg.train.random_seed)
+        random.seed(cfg.train.random_seed)
 
         # instantiated variables
         self.cfg = cfg
@@ -277,19 +284,19 @@ class trainer():
         self.val_num_phones_correct_no_silence = 0
 
     def freeze_parameters(self, model):
-        for param in model:
+        for param in model.parameters():
             param.requires_grad = False
         return model
     
     def unfreeze_parameters(self, model):
-        for param in model:
+        for param in model.parameters():
             param.requires_grad = True
         return model
     
     def extract_metrics(self, emg_enc_loss_output): # calculates metrics from training and validation
 
         # calculating phoneme accuracy including silences
-        phoneme_acc_batch = phoneme_accuracy(emg_enc_loss_output.num_phones, emg_enc_loss_output.num_phones_correct)
+        phoneme_acc_batch = phoneme_accuracy(emg_enc_loss_output.num_phones, emg_enc_loss_output.num_correct_phones)
 
         # calcualting phoneme accuracy ignoring silences
         phoneme_acc_batch_no_silence = phoneme_accuracy_no_silence(
@@ -404,15 +411,15 @@ class trainer():
         self.netG.eval() # for Dropout and BN
         self.mode = 'valid' # for metrics
         
-        # Batch loop - Validation
-        for i, val_dict in enumerate(self.dataloader.valid_loader):
-                    
-            x_t, spk_mode_idx, sess_idx, phoneme_targets, speech_units_t, s_t1 = \
-                self.dataloader.data_from_dict(self, val_dict, speech_feature_type)
-            
-            # calculation of metrics and main losses, based on generation
-            with torch.autocast(device_type=self.device.type, dtype=torch.float16):
-                with torch.no_grad():
+        with torch.no_grad():
+            # Batch loop - Validation
+            for i, val_dict in enumerate(self.dataloader.valid_loader):
+                        
+                x_t, spk_mode_idx, sess_idx, phoneme_targets, speech_units_t, s_t1 = \
+                    self.dataloader.data_from_dict(self, val_dict, speech_feature_type)
+                
+                # calculation of metrics and main losses, based on generation
+                with torch.autocast(device_type=self.device.type, dtype=torch.float16):
                     x_pred_t = self.netG(s_t1, sess_idx, spk_mode_idx) # generator inference
 
                     # validation loss calculations
@@ -433,32 +440,32 @@ class trainer():
         self.netG.eval()
         self.mode = 'valid'
 
-        for i, sample_dict in enumerate(self.dataloader.valid_loader.dataset):
-        
-            _, spk_mode_idx, sess_idx, _, _, s_t1 = \
-                self.dataloader.data_from_dict(self, sample_dict, speech_feature_type)
-                            
-            # Generate the real EMG signal
-            real_emg = sample_dict[DataType.REAL_EMG].squeeze(0).detach().cpu().numpy()
-
-            with torch.no_grad():
-                # Generate the fake EMG signal
-                pred_emg = self.netG.generate(s_t1.unsqueeze(0), sess_idx, spk_mode_idx).squeeze(0).detach().cpu().numpy()
+        with torch.no_grad():
+            for i, sample_dict in enumerate(self.dataloader.valid_loader.dataset):
             
-            plot_real_vs_fake_emg_signal_with_envelope(
-                real_emg_signal=real_emg,
-                fake_emg_signal=pred_emg,
-                file_id=f"Validation sample {i}",
-                save_as=None,
-                tb_summary_writer=self.writer,
-                tb_tag_prefix="val/envelopes_emg_real_vs_fake",
-                global_step=self.steps,
-                show=False
-            )
+                _, spk_mode_idx, sess_idx, _, _, s_t1 = \
+                    self.dataloader.data_from_dict(self, sample_dict, speech_feature_type)
+                                
+                # Generate the real EMG signal
+                real_emg = sample_dict[DataType.REAL_EMG].squeeze(0).detach().cpu().numpy()
+                
+                # Generate the fake EMG signal
+                pred_emg = self.netG.generate(s_t1.unsqueeze(0), sess_idx.unsqueeze(0), spk_mode_idx.unsqueeze(0)).squeeze(0).detach().cpu().numpy()
+                
+                plot_real_vs_fake_emg_signal_with_envelope(
+                    real_emg_signal=real_emg,
+                    fake_emg_signal=pred_emg,
+                    file_id=f"Validation sample {i}",
+                    save_as=None,
+                    tb_summary_writer=self.writer,
+                    tb_tag_prefix="val/envelopes_emg_real_vs_fake",
+                    global_step=self.steps,
+                    show=False
+                )
 
-            if i > self.cfg.train.num_test_samples:
-                break
-        
+                if i > self.cfg.train.num_test_samples:
+                    break
+            
         logging.info("-" * 100)
         logging.info("Took %5.4fs to generate samples" % (time.time() - gen_start))
         logging.info("-" * 100)
@@ -653,7 +660,7 @@ def train(
         netG = torch.compile(netG)
         netD = torch.compile(netD)
         emg_encoder = torch.compile(emg_encoder)
-        #multi_td_loss = torch.compile(multi_td_loss)
+        # multi_td_loss = torch.compile(multi_td_loss)
         emg_encoder_loss = torch.compile(emg_encoder_loss)
     else:
         logging.warning(f"Will NOT compile models. Torch version: {torch. __version__}")

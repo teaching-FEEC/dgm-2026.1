@@ -102,7 +102,7 @@ def init_emg_encoder(
     emg_encoder_type = emg_encoder_config["type"]
     emg_encoder_params = emg_encoder_config["params"]
     
-    logging.info(f"Initializing EMG encoder with type {emg_encoder_type}")
+    logging.info(f"Initializing EMG encoder with type {emg_encoder_type} and device {device}")
     emg_encoder_args = dict(num_ins=num_ins, num_outs=num_outs, num_aux_outs=num_aux_outs)
     if emg_encoder_type == "EMGEncoderTransformer":
         emg_encoder = EMGEncoderTransformer(**emg_encoder_args, **emg_encoder_params)
