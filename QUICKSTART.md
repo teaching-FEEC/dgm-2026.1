@@ -13,7 +13,7 @@
 
 ```bash
 git clone --recurse-submodules https://github.com/NuitJack/dgm-2026.1.git
-cd dgm-2026.1
+cd dgm-2026.1/projects/EMGAN
 ```
 
 ### 2. Build the image
