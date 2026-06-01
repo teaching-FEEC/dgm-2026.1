@@ -1,0 +1,3 @@
+[submodule "projects/EMGAN/NeuroRVQ"]
+	path = projects/EMGAN/NeuroRVQ
+	url = https://github.com/KonstantinosBarmpas/NeuroRVQ.git

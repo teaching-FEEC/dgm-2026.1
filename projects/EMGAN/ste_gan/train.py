@@ -224,7 +224,7 @@ class trainer():
         self.debug = debug
         self.emg_enc_ckpt = emg_enc_ckpt
         self.mode = None # train or valid
-
+ 
         # hyperparameters
         self.device = torch.device(self.torch_device)
 
