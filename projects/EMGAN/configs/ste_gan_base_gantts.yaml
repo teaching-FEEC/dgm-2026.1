@@ -47,7 +47,7 @@ train:
   loss_waveform_weight: 0.0
 
   # Optimization settings
-  batch_size: 1
+  batch_size: 1 # 64 for 6 Gb of VRAM
 
   # Number of EMG samples to output
   chunk_size: 2048

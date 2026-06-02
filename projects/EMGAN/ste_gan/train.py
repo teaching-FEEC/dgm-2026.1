@@ -3,8 +3,7 @@
 Adapted from: https://github.com/descriptinc/cargan/blob/master/cargan/train.py
 """
 # import os #  - Adaptation for running locally
-# print("Before:", os.getcwd())
-# Change to a new directory path
+# # Change to a new directory path
 # if not(os.getcwd().endswith('EMGAN')):
 #     os.chdir('projeto/dgm-2026.1/projects/EMGAN')
 
@@ -1063,7 +1062,7 @@ def main(cfg: DictConfig, continue_run: bool, debug: bool, emg_enc_ckpt: Path, *
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_class = trainer(cfg, output_directory, checkpoint, device, debug, emg_enc_ckpt)
     train_class.train()
-    #train(cfg, output_directory, checkpoint, device, debug, emg_enc_ckpt)
+    # train(cfg, output_directory, checkpoint, device, debug, emg_enc_ckpt)
     
 
 def parse_args():
@@ -1094,7 +1093,7 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
     cfg = load_config(args)
     args.cfg = cfg
