@@ -4,8 +4,11 @@ SHELL ["/bin/bash", "-c"]
 
 RUN apt update && apt install -y git
 
-RUN cd dgm-2026.1/projects/EMGAN && \
-    source /opt/conda/etc/profile.d/conda.sh && \
+WORKDIR /workspace
+
+COPY . .
+
+RUN source /opt/conda/etc/profile.d/conda.sh && \
     conda create -y -n ste-gan python=3.10 && \
     conda init && \
     source ~/.bashrc && \
@@ -16,6 +19,9 @@ import torch.nn as nn; \
 nn.utils.parametrizations.weight_norm = nn.utils.weight_norm; \
 import torch; \
 torch.hub.load('bshall/hubert:main', 'hubert_soft', trust_repo=True)"
+    conda run -n ste-gan hf download ntinosbarmpas/NeuroRVQ \
+    pretrained_models/tokenizers/NeuroRVQ_EMG_tokenizer_v1.pt \
+    --local-dir ./ste_gan/pretrained_models
 
 RUN echo "conda activate ste-gan" >> ~/.bashrc
 

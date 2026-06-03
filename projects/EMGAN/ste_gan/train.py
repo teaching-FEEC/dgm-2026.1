@@ -13,6 +13,7 @@ import itertools
 import logging
 import random
 import sys
+sys.path.insert(0, "./NeuroRVQ")
 sys.path.append(".")
 import time
 from pathlib import Path
@@ -32,6 +33,7 @@ from ste_gan.utils.plot_utils import plot_real_vs_fake_emg_signal_with_envelope
 from ste_gan.losses.emg_encoder_loss import (EMGEncoderLoss,
                                              EMGEncoderLossOutput)
 from ste_gan.losses.time_domain_loss import MultiTimeDomainFeatureLoss
+from ste_gan.losses.neuro_rvq_loss import NeuroRVQLoss
 from ste_gan.models.discriminator import init_emg_discriminators
 from ste_gan.models.emg_encoder import load_emg_encoder
 from ste_gan.models.generator import init_emg_generator
@@ -107,6 +109,10 @@ def our_logging(obj, epoch, iterno, loss_G, log_start): # logs for training and 
         
         logging.info("-" * 100)
         logging.info("Took %5.4fs to run validation loop" % (time.time() - log_start))
+        if obj.cfg.train.loss_neuro_rvq_error and obj.rvq_errors:
+            avg_val_rvq_error = mean_error(obj.rvq_errors)
+            obj.writer.add_scalar("val_loss/neuro_rvq", avg_val_rvq_error, obj.steps)
+            logging.info(f"\t - Avg. Val. NeuroRVQ Error: {avg_val_rvq_error}")
         logging.info(f"\t - Avg. Val. Speech Unit Error : {avg_su_error}")
         logging.info(f"\t - Avg. Val. Multi-TD Val. Error: {avg_val_td_error}")
         logging.info(f"\t - Avg. Val. Phoneme Error: {avg_val_phoneme_error}")
@@ -241,7 +247,8 @@ class trainer():
         logging.info(f"Initializing Losses")
         self.multi_td_loss = MultiTimeDomainFeatureLoss(self.cfg.data.num_emg_channels).to(self.device)
         self.emg_encoder_loss = EMGEncoderLoss(self.emg_encoder).to(self.device)
-
+        if self.cfg.train.loss_neuro_rvq_error: 
+            self.neuro_rvq_loss = NeuroRVQLoss(self.cfg).to(self.device)
         # optims
         self.optG = ste_gan.OPTIMIZER(self.netG.parameters())
         self.optD = ste_gan.OPTIMIZER(self.netD.parameters())
@@ -267,7 +274,7 @@ class trainer():
         self.su_errors = []
         self.phoneme_errors = []
         self.wave_errors = []
-    
+        self.rvq_errors = []
         self.best_td_loss = np.inf
         self.best_su_loss = np.inf # currently used for best model
 
@@ -389,7 +396,11 @@ class trainer():
                 phoneme_loss = emg_enc_loss_output.phoneme_loss
                 loss_G += self.cfg.train.loss_phoneme_weight * phoneme_loss # multiplying by a lambda (weight)
                 self.writer.add_scalar("train_loss/phoneme", phoneme_loss.item(), self.steps)
-
+            # neurorvq loss
+            if self.cfg.train.loss_neuro_rvq_error:
+                rvq_loss = self.neuro_rvq_loss(x_t, x_pred_t)
+                loss_G += self.cfg.train.loss_neuro_rvq_weight * rvq_loss
+                self.writer.add_scalar("train_loss/neuro_rvq", rvq_loss.item(), self.steps)
             # logging total generator loss
             self.writer.add_scalar("train_loss/generator", loss_G.item(), self.steps)
 
@@ -408,6 +419,7 @@ class trainer():
         self.su_errors = []
         self.phoneme_errors = []
         self.wave_errors = []
+        self.rvq_errors = []
         self.val_num_phones = 0
         self.val_num_phones_correct = 0
         self.val_num_silence = 0
@@ -436,6 +448,8 @@ class trainer():
                 
                     self.su_errors.append(emg_enc_loss_output.speech_unit_loss.item())
                     self.phoneme_errors.append(emg_enc_loss_output.phoneme_loss.item())
+                    if self.cfg.train.loss_neuro_rvq_error:  
+                        self.rvq_errors.append(self.neuro_rvq_loss(x_t, x_pred_t).item())
                     # metrics calculations
                     self.extract_metrics(emg_enc_loss_output)
 
