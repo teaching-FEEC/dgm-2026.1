@@ -18,7 +18,7 @@ RUN source /opt/conda/etc/profile.d/conda.sh && \
 import torch.nn as nn; \
 nn.utils.parametrizations.weight_norm = nn.utils.weight_norm; \
 import torch; \
-torch.hub.load('bshall/hubert:main', 'hubert_soft', trust_repo=True)" \
+torch.hub.load('bshall/hubert:main', 'hubert_soft', trust_repo=True)" && \
     conda run -n ste-gan hf download ntinosbarmpas/NeuroRVQ \
     pretrained_models/tokenizers/NeuroRVQ_EMG_tokenizer_v1.pt \
     --local-dir ./ste_gan/pretrained_models
