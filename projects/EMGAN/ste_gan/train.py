@@ -337,7 +337,6 @@ class trainer():
 
         self.scaler.scale(loss_D).backward()
         self.scaler.step(self.optD) # only updates discriminator
-        self.scaler.update() # updating scaler after training step
 
     def g_training_loop(self, x_t, x_pred_t, speech_units_t, phoneme_targets): # generator training inside loop
         
@@ -356,7 +355,7 @@ class trainer():
                 loss_feat = 0
                 for i in range(len(D_fake)): # each discriminator
                     for j in range(len(D_fake[i]) - 1): # each layer except the last one, since we want features
-                        loss_feat += F.l1_loss(D_fake[i][j], D_real[i][j]) # calculate L1 loss for specific layer
+                        loss_feat += F.l1_loss(D_fake[i][j], D_real[i][j]).detach() # calculate L1 loss for specific layer
                 loss_G += self.cfg.train.loss_feat_match_weight * loss_feat # multiplying by a lambda (weight)
                 self.writer.add_scalar("train_loss/feature_matching", loss_feat.item(), self.steps)
 
@@ -396,14 +395,23 @@ class trainer():
 
         self.scaler.scale(loss_G).backward()
         self.scaler.step(self.optG) # only updates generator
-        self.scaler.update() # updating scaler after training step
+        self.scaler.update(),  # updating scaler after training step  per iteration, after both D and G steps
+
 
         self.netD = self.unfreeze_parameters(self.netD) # unfreezing discriminator parameters for further training
 
         return loss_G # for logging
     
     def validation(self, speech_feature_type): # validation losses and metrics
-
+        # our_logging sees only the current validation pass, not accumulated history
+        self.td_errors = []
+        self.su_errors = []
+        self.phoneme_errors = []
+        self.wave_errors = []
+        self.val_num_phones = 0
+        self.val_num_phones_correct = 0
+        self.val_num_silence = 0
+        self.val_num_phones_correct_no_silence = 0
         logging.info(f"Starting validation")
 
         # will not forward pass on discriminator (not interested in its losses)
@@ -488,6 +496,13 @@ class trainer():
             logging.info(f"Starting epoch {epoch+1}")
             epoch_start_time = time.time()
 
+	
+            # reflects only the current epoch, not the entire training history
+            self.train_num_phones = 0
+            self.train_num_phones_correct = 0
+            self.train_num_silence = 0
+            self.train_num_phones_correct_no_silence = 0
+
             # Batch loop - Training
             for iterno, train_dict in enumerate(self.dataloader.train_loader):
                 # extracting all inputs
@@ -515,7 +530,7 @@ class trainer():
                 # Logging of losses and metrics up to now
                 if self.steps % self.cfg.train.interval_log == 0:
                     our_logging(self, epoch, iterno, loss_G, log_start)
-                    
+                    log_start = time.time()  # reset timer after each log 
                 # Validation
                 if self.steps % self.cfg.train.interval_valid == 0:
                     val_start = time.time()
