@@ -81,7 +81,7 @@ def our_logging(obj, epoch, iterno, loss_G, log_start): # logs for training and 
         
         log = (
             f"Epoch {epoch} ({iterno}/{len(obj.dataloader.train_loader)}) | Steps {obj.steps} | "
-            f"ms/batch {1e3 * (time.time() - log_start) / cfg.train.interval_log:5.2f} | Train Loss: {loss_G.item():.4f} | Ph. Acc. (Avg.) {phoneme_acc_train:.2f} | Ph. Acc. Avg. (No Sil) {phoneme_acc_train_no_sil:.2f}"
+            f"ms/batch {1e3 * (time.time() - log_start) / obj.cfg.train.interval_log:5.2f} | Train Loss: {loss_G.item():.4f} | Ph. Acc. (Avg.) {phoneme_acc_train:.2f} | Ph. Acc. Avg. (No Sil) {phoneme_acc_train_no_sil:.2f}"
         )
         obj.writer.add_scalar("train_loss/phoneme_accuracy_avg", phoneme_acc_train, obj.steps)
         obj.writer.add_scalar("train_loss/phoneme_accuracy_avg_no_sil", phoneme_acc_train_no_sil, obj.steps)
@@ -158,7 +158,7 @@ def model_save(obj, epoch, mode='intermediate'): # saves models parameters
     torch.save( # saving discriminator
         obj.netD.state_dict(),
         obj.model_directory / discriminator_pt) 
-    # saving optmizers
+    # saving optimizers
     torch.save(dict, obj.model_directory / opt_path)
     
     # logging saving time
@@ -297,7 +297,7 @@ class trainer():
         # calculating phoneme accuracy including silences
         phoneme_acc_batch = phoneme_accuracy(emg_enc_loss_output.num_phones, emg_enc_loss_output.num_correct_phones)
 
-        # calcualting phoneme accuracy ignoring silences
+        # calculating phoneme accuracy ignoring silences
         phoneme_acc_batch_no_silence = phoneme_accuracy_no_silence(
             emg_enc_loss_output.num_phones, 
             emg_enc_loss_output.num_correct_phones_no_silence,
@@ -317,7 +317,7 @@ class trainer():
             self.val_num_phones += emg_enc_loss_output.num_phones
             self.val_num_phones_correct += emg_enc_loss_output.num_correct_phones
             self.val_num_silence += emg_enc_loss_output.num_silence_phones
-            self.val_num_phones_correct_no_silence += phoneme_acc_batch_no_silence
+            self.val_num_phones_correct_no_silence += emg_enc_loss_output.num_correct_phones_no_silence
     
     def d_training_loop(self, x_t, x_pred_t): # discriminator training inside loop
 
@@ -341,7 +341,7 @@ class trainer():
 
     def g_training_loop(self, x_t, x_pred_t, speech_units_t, phoneme_targets): # generator training inside loop
         
-        with torch.autocast(device_type=self.device.type, dtype=torch.float16, enabled=cfg.train.mixed_precision):
+        with torch.autocast(device_type=self.device.type, dtype=torch.float16, enabled=self.cfg.train.mixed_precision):
             self.netD = self.freeze_parameters(self.netD) # freezing discriminator parameters to save memory
             D_fake = self.netD(x_pred_t)
             D_real = self.netD(x_t)
