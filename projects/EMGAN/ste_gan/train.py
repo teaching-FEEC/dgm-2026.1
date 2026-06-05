@@ -362,7 +362,7 @@ class trainer():
                 loss_feat = 0
                 for i in range(len(D_fake)): # each discriminator
                     for j in range(len(D_fake[i]) - 1): # each layer except the last one, since we want features
-                        loss_feat += F.l1_loss(D_fake[i][j], D_real[i][j]).detach() # calculate L1 loss for specific layer
+                        loss_feat += F.l1_loss(D_fake[i][j], D_real[i][j].detach()) # calculate L1 loss for specific layer
                 loss_G += self.cfg.train.loss_feat_match_weight * loss_feat # multiplying by a lambda (weight)
                 self.writer.add_scalar("train_loss/feature_matching", loss_feat.item(), self.steps)
 
