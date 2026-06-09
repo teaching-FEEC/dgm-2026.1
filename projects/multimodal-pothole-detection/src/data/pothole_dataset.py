@@ -1,7 +1,10 @@
 """Pothole dataset loading and augmentation utilities.
 
 This module loads paired pothole images and point clouds, applies optional
-training augmentations, and prepares Point-E batches.
+training augmentations, and prepares Point-E batches. Supports val-set
+isolation via `sample_ids_filter` (to create reproducible train/val splits)
+and augmentation-free evaluation via `disable_augmentation` (always True for
+val dataloaders to guarantee clean evaluation metrics).
 """
 
 from __future__ import annotations
@@ -43,19 +46,37 @@ class PotholeDataset(Dataset):
     """
     Dataset for paired 2D images and 3D point clouds.
 
+    Supports optional val-set isolation via `sample_ids_filter` and
+    augmentation-free evaluation via `disable_augmentation`.
+
     Returns one sample as a dictionary containing:
       - image_for_conditioning: PIL.Image in RGB mode (raw visual input for Point-E CLIP path)
       - point_cloud_6d: torch.FloatTensor with shape [6, K]
       - sample_id: stem name used for traceability/debug
+      - applied_transforms: list of transform names applied to this sample
     """
-    def __init__(self, image_dir: str | Path, cloud_dir: str | Path, augmentation_config: dict | None = None):
+    def __init__(
+        self,
+        image_dir: str | Path,
+        cloud_dir: str | Path,
+        augmentation_config: dict | None = None,
+        sample_ids_filter: set[str] | None = None,
+        disable_augmentation: bool = False,
+    ):
         self.image_dir = Path(image_dir)
         self.cloud_dir = Path(cloud_dir)
         self.augmentation_config = augmentation_config
+        self.sample_ids_filter = sample_ids_filter
+        # Val datasets must always be constructed with disable_augmentation=True.
+        self.disable_augmentation = disable_augmentation
         self.samples = self._pair_samples()
 
     def _pair_samples(self):
-        """Finds matching image and .npy files between the directories."""
+        """Finds matching image and .npy files between the directories.
+
+        When `sample_ids_filter` is set, only samples whose filename stem
+        appears in the filter set are included. Used to create train/val splits.
+        """
         samples = []
         if not self.image_dir.exists() or not self.cloud_dir.exists():
             print(f"Warning: Dataset directories not found: {self.image_dir} or {self.cloud_dir}")
@@ -71,6 +92,12 @@ class PotholeDataset(Dataset):
             cloud_path = self.cloud_dir / f"{img_path.stem}.npy"
             if cloud_path.exists():
                 samples.append((img_path, cloud_path))
+
+        if self.sample_ids_filter is not None:
+            samples = [
+                (img, cld) for img, cld in samples
+                if img.stem in self.sample_ids_filter
+            ]
 
         return samples
 
@@ -143,16 +170,23 @@ class PotholeDataset(Dataset):
         return current_image, current_pts, applied_transforms
 
     def __getitem__(self, idx):
+        """Return one sample dict. Val datasets bypass augmentation entirely.
+
+        Invariant: Val datasets must always be constructed with
+        `disable_augmentation=True` — do not rely on `augmentation_config=None`
+        alone to guarantee clean evaluation.
+        """
         img_path, cloud_path = self.samples[idx]
 
         # Load image as raw RGB for Point-E CLIP conditioning path.
         image = Image.open(img_path).convert("RGB")
 
         pts_raw = np.load(cloud_path)
-        if self.augmentation_config is not None:
-            image, pts_raw, applied_transforms = self._apply_augmentations(image, pts_raw)
-        else:
+        # Val datasets bypass all augmentation at this level — do not move this guard.
+        if self.disable_augmentation or self.augmentation_config is None:
             applied_transforms = []
+        else:
+            image, pts_raw, applied_transforms = self._apply_augmentations(image, pts_raw)
 
         pts_final = self._normalize_point_cloud(pts_raw)
 
@@ -186,7 +220,6 @@ def point_e_collate_fn(batch: list[dict]) -> dict:
     }
 
 
-# T009: Dataloader wrapper setup to serve minibatches globally
 def create_dataloader(
     image_dir: str | Path,
     cloud_dir: str | Path,
@@ -194,16 +227,34 @@ def create_dataloader(
     shuffle: bool = True,
     num_workers: int = 0,
     augmentation_config: dict | None = None,
+    sample_ids_filter: set[str] | None = None,
+    disable_augmentation: bool = False,
 ):
     """
     Creates and returns a PyTorch DataLoader for the PotholeDataset.
 
-        Returns batches with:
-            - images: list[PIL.Image]
-            - point_cloud_6d: torch.FloatTensor [B, 6, K]
-            - sample_id: list[str]
+    Parameters
+    ----------
+    sample_ids_filter:
+        When provided, only samples with a stem matching an entry in this set
+        are included. Used to create train/val splits.
+    disable_augmentation:
+        When True, all augmentations are bypassed regardless of augmentation_config.
+        Always set to True for val dataloaders.
+
+    Returns batches with:
+        - images: list[PIL.Image]
+        - point_cloud_6d: torch.FloatTensor [B, 6, K]
+        - sample_id: list[str]
+        - applied_transforms: list[list[str]]
     """
-    dataset = PotholeDataset(image_dir, cloud_dir, augmentation_config=augmentation_config)
+    dataset = PotholeDataset(
+        image_dir,
+        cloud_dir,
+        augmentation_config=augmentation_config,
+        sample_ids_filter=sample_ids_filter,
+        disable_augmentation=disable_augmentation,
+    )
     return DataLoader(
         dataset,
         batch_size=batch_size,

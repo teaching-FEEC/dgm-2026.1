@@ -2,7 +2,9 @@
 
 This CLI script provides the executable entry point to initiate or resume
 the Point-E training process relying on hyperparameters or a resolved JSON
-configuration file.
+configuration file. Supports a configurable validation loop with best-checkpoint
+selection via `checkpoint_best.pt`, augmentation-free val evaluation, and an
+optional Chamfer Distance monitoring module.
 """
 
 import argparse
@@ -20,7 +22,13 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from src.models.point_e_model import PotholePointE
 from src.models.train_engine import PointETrainer
-from src.data.pothole_dataset import create_dataloader
+from src.data.pothole_dataset import (
+    PotholeDataset,
+    create_dataloader,
+    point_e_collate_fn,
+    IMAGE_EXTENSIONS,
+)
+from torch.utils.data import DataLoader
 
 
 DEFAULT_CONFIG = {
@@ -42,6 +50,14 @@ DEFAULT_CONFIG = {
             "motion_blur": 0.2,
             "cutout": 0.3,
         },
+    },
+    "validation": {
+        "val_sample_ids": [],
+        "val_interval": 1,
+        "checkpoint_metric": "val_loss",
+        "compute_chamfer_distance": False,
+        "cd_sampling_steps": 64,
+        "val_fixed_timesteps": None,
     },
 }
 
@@ -84,6 +100,7 @@ def load_config(config_path: str | None, cli_overrides: dict) -> dict:
     config = _deep_merge(config, cli_overrides)
     config["model"] = _deep_merge(DEFAULT_CONFIG["model"], config.get("model", {}))
     config["augmentation"] = _deep_merge(DEFAULT_CONFIG["augmentation"], config.get("augmentation", {}))
+    config["validation"] = _deep_merge(DEFAULT_CONFIG["validation"], config.get("validation", {}))
     config.setdefault("data", {})
     return config
 
@@ -179,7 +196,21 @@ def main():
     augmentation_record_dir = root_dir / "artifacts" / "augmentation_records"
     augmentation_record_dir.mkdir(parents=True, exist_ok=True)
     augmentation_record_path = augmentation_record_dir / f"aug_record_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
-    
+
+    # Val records directory
+    val_records_dir = root_dir / "artifacts" / "val_records"
+    val_records_dir.mkdir(parents=True, exist_ok=True)
+    val_log_path = val_records_dir / f"val_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
+
+    # Build train/val split from config
+    val_ids = set(config["validation"].get("val_sample_ids", []))
+    all_stems = {
+        path.stem
+        for path in image_dir.iterdir()
+        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+    } if image_dir.exists() else set()
+    train_ids_filter = (all_stems - val_ids) if val_ids else None
+
     # T020: Execute full PointETrainer launch integration
     dataloader = create_dataloader(
         image_dir=image_dir,
@@ -188,7 +219,27 @@ def main():
         shuffle=True,
         num_workers=4,
         augmentation_config=config.get("augmentation"),
+        sample_ids_filter=train_ids_filter,
     )
+
+    # Construct val dataloader (augmentation always disabled)
+    val_dataloader = None
+    if val_ids:
+        val_dataset = PotholeDataset(
+            image_dir,
+            cloud_dir,
+            augmentation_config=config.get("augmentation"),
+            sample_ids_filter=val_ids,
+            disable_augmentation=True,
+        )
+        val_dataloader = DataLoader(
+            val_dataset,
+            batch_size=config["model"]["batch_size"],
+            shuffle=False,
+            num_workers=4,
+            collate_fn=point_e_collate_fn,
+        )
+        print(f"Val set: {len(val_ids)} samples | Train set: {len(all_stems) - len(val_ids)} samples")
     
     print("Loading Point-E architecture (Base40M)...")
     point_e_model = PotholePointE(base_model_name="base40M")
@@ -202,7 +253,8 @@ def main():
         start_epoch = trainer.load_checkpoint(resume_path)
         
     # Launch Loop
-    with augmentation_record_path.open("a", encoding="utf-8") as augmentation_record_file:
+    with augmentation_record_path.open("a", encoding="utf-8") as augmentation_record_file, \
+         val_log_path.open("w", encoding="utf-8") as val_log_file:
         trainer.train_step(
             dataloader=dataloader,
             epochs=config["model"]["epochs"],
@@ -210,6 +262,9 @@ def main():
             save_dir=save_dir,
             save_interval=config["model"]["save_interval"],
             augmentation_record_file=augmentation_record_file,
+            val_dataloader=val_dataloader,
+            val_config=config["validation"],
+            val_log_file=val_log_file,
         )
     
     print("Training session complete!")
