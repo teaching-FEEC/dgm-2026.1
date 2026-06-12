@@ -162,7 +162,7 @@ class EMGDataset(torch.utils.data.Dataset):
         transcripts = []
         for file_id, emg_path in zip(file_ids, emg_paths):
             txt_file = emg_path.parents[1] / ste_gan.DataDir.TRANSCRIPTIONS / f"{file_id}.txt"
-            transcript = txt_file.read_text().strip().lower()
+            transcript = txt_file.read_text(encoding='utf-8').strip().lower()
             transcripts.append(transcript)
         return transcripts
     

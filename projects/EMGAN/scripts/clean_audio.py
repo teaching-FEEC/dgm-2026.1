@@ -40,7 +40,7 @@ def clean_directory(directory):
         i = len(audio_file_names)
         fname = os.path.join(directory, f'{i}_audio.flac')
         if os.path.exists(fname):
-            audio_file_names.append(fname)
+            audio_file_names.append(fname)  
         else:
             break
 
@@ -77,6 +77,7 @@ def clean_directory(directory):
         enhance_model = SpectralMaskEnhancement.from_hparams(
             source=model_id,
             savedir="pretrained_models/metricgan-plus-voicebank",
+            run_opts={"device": "cuda"}
         )
     else:
         enhance_model = None
@@ -110,3 +111,6 @@ if __name__ == "__main__":
     for i in range(1, len(sys.argv)):
         print('cleaning', sys.argv[i])
         clean_directory(sys.argv[i])
+        # subdirs = [f.path for f in os.scandir(sys.argv[i]) if f.is_dir()] # correcting the code
+        # for dir in subdirs:
+        #     clean_directory(dir)

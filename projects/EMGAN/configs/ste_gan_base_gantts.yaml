@@ -19,6 +19,12 @@ train:
 
   mixed_precision: true
   
+  loss_neuro_rvq_error: true        
+  loss_neuro_rvq_weight: 1.0
+  neuro_rvq_config_path: "./NeuroRVQ/flags/NeuroRVQ_EMG_v1.yml"
+  neuro_rvq_model_path:  "./ste_gan/pretrained_models/pretrained_models/tokenizers/NeuroRVQ_EMG_tokenizer_v1.pt"
+  neuro_rvq_ch_names: ["c1","c2","c3","c4","c5","c6","c7","c8"]
+
   # EMG encoder losses (speech unit + phoneme loss)
   # Speech Unit Loss
   loss_speech_unit_error: true
@@ -29,8 +35,8 @@ train:
   loss_phoneme_weight: 1.0 #0.5
   
   # Multi Time-Domain Loss
-  loss_multi_td_error: True
-  loss_multi_td_weight: 15.0
+  loss_multi_td_error: true
+  loss_multi_td_weight: 0.0
   
   # Feature matching
   loss_feat_match_error: true
@@ -41,7 +47,7 @@ train:
   loss_waveform_weight: 0.0
 
   # Optimization settings
-  batch_size: 32
+  batch_size: 16 # 64 for 6 Gb of VRAM
 
   # Number of EMG samples to output
   chunk_size: 2048
@@ -71,3 +77,4 @@ train:
 
   # Number of samples to put on tensorboard
   num_test_samples: 10
+

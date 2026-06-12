@@ -6,6 +6,7 @@ import logging
 import os
 import random
 import sys
+sys.path.append(".")
 from datetime import date
 from pathlib import Path
 from typing import Optional
