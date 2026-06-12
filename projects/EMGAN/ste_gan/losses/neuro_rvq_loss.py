@@ -140,6 +140,17 @@ class NeuroRVQLoss(nn.Module):
         x_real  = self._to_tokenizer_input(emg_real)
         x_synth = self._to_tokenizer_input(emg_synth)
 
+        if False: # controls sampling before inference of NeuroRVQ, to reduce training time
+          
+          # extract 1 random patch from each channel (which has 10 patches)
+          rng = np.random.default_rng()
+          array_8d = rng.integers(low=0, high=10, size=(8)) + np.arange(0, 80, 10) # extracts 8 indices precisely
+  
+          x_real_sampled = x_real.reshape(x_real.shape[0], -1, self.patch_size)[:, array_8d, :]
+          x_real = x_real_sampled.reshape(x_real.shape[0], x_real.shape[1], -1, self.patch_size)
+          x_synth_sampled = x_synth.reshape(x_synth.shape[0], -1, self.patch_size)[:, array_8d, :]
+          x_synth = x_synth_sampled.reshape(x_synth.shape[0], x_synth.shape[1], -1, self.patch_size)
+
         # Real path: no grad needed (frozen target)
         with torch.no_grad():
             out_real      = self.tokenizer.get_tokens(x_real, self.temp_ix, self.spat_ix)
