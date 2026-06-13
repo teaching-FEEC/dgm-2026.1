@@ -105,22 +105,33 @@ The category distribution across training and test splits is summarized below:
 
 The dataset is imbalanced toward fake images, which comprise 65.6% of the training split. Category sizes vary substantially, with deepfake being the largest (23,961 images) and scene the smallest (7,053 images). The fake-to-real ratio also differs by category: document has a 3.6:1 ratio, while animal and satellite are approximately 1:1. The proportional distribution is consistent between the training and test splits.
 
-### Scope Revision
-
-The initial proposal envisioned augmenting FakeVLM with multiple feature extraction domains: spatial/structural (Xception, patch-based), statistical (NPR), physical (sensor noise patterns), spectral (frequency-domain masking), and semantic (CLIP-ViT alignment). During the exploratory phase, we determined that suitable dataset annotations were unavailable for some of these domains. We therefore narrowed the feature scope to a single frequency-domain branch while expanding the project to include a dataset annotation pipeline that produces the necessary training labels. This decision allowed us to focus on a complete, end-to-end implementation, from dataset annotation through model architecture to evaluation, rather than a broader but incomplete multi-feature system.
-
 ### Frequency-Domain Label Augmentation
 
-To train FakeVLM-Extended, the model must learn to associate frequency-domain artifacts with its natural-language explanations. Since the original FakeClue labels contain no frequency-related information, we developed a pipeline to augment the dataset with frequency artifact annotations.
+To train FakeVLM-Extended to associate frequency-domain artifacts with its natural-language explanations, the training labels must contain frequency-related information. The original FakeClue annotations describe only spatial and semantic artifacts and make no reference to the frequency domain. A straightforward approach would be to append a frequency artifact sentence to every fake image in the dataset, but this would introduce false information into the training labels for images where no frequency artifact is detectable, biasing the model toward associating frequency cues with all fakes regardless of evidence. We therefore adopt a selective augmentation strategy: only images where a pre-trained frequency-domain classifier independently confirms synthetic artifacts receive the additional annotation.
 
-The pipeline operates in two stages. First, we run 17 pre-trained frequency-domain classifiers from four families on every image in the FakeClue dataset:
+To identify which fake images exhibit detectable frequency artifacts, we evaluated 17 pre-trained classifiers from four model families on every image in the FakeClue dataset:
 
-- **GANDCTAnalysis** [5]: Ridge and Lasso regression on DCT coefficients and raw pixel values (3 models).
-- **FakeImageDetection** [7]: ResNet-50 and CLIP ViT-L/14 variants with frequency-domain spectral masking at multiple bands (12 models).
-- **SPAI** [6]: Patch-based multi-frequency ViT operating on FFT-decomposed spectral components at the original image resolution (1 model).
-- **NPR** [1]: ResNet-50 on neighboring pixel residuals, capturing upsampling artifacts in the spatial domain (1 model). Included for completeness, although its features are spatial rather than strictly frequency-domain.
+- **GANDCTAnalysis** [5]: Ridge and Lasso regression on DCT coefficients and raw pixel values (3 model configurations).
+- **FakeImageDetection** [7]: ResNet-50 and CLIP ViT-L/14 variants with frequency-domain spectral masking at multiple bands (12 configurations).
+- **SPAI** [6]: Patch-based multi-frequency Vision Transformer operating on FFT-decomposed spectral components at the original image resolution (1 configuration).
+- **NPR** [1]: ResNet-50 on neighboring pixel residuals, capturing upsampling artifacts in the spatial domain (1 configuration). Initially considered as a feature extraction candidate, as discussed in Related Work.
 
-Second, for each of the seven FakeClue image categories, we select the classifier that maximizes the number of true positives (fake images correctly classified as fake). For each true-positive detection, the sentence *"The image also presents artifacts in the frequency domain."* is appended to the existing natural-language explanation in the FakeClue label. This conservative strategy ensures that frequency annotations are only applied to images where a frequency-domain classifier provides corroborating evidence of synthetic origin.
+For each of the seven FakeClue image categories, we selected the classifier that maximizes the number of true positives, defined as fake images correctly classified as fake. The following table summarizes the best-performing classifier per category on the training split:
+
+| Category | Best Classifier | Framework | TPs | Fake Images | Coverage |
+|----------|----------------|-----------|-----|-------------|----------|
+| deepfake | ridge_dct | GANDCTAnalysis [5] | 19,066 | 19,166 | 99.5% |
+| satellite | spai | SPAI [6] | 8,397 | 9,557 | 87.9% |
+| object | spai | SPAI [6] | 8,304 | 10,993 | 75.6% |
+| animal | spai | SPAI [6] | 5,983 | 7,905 | 75.7% |
+| human | spai | SPAI [6] | 4,577 | 6,647 | 69.2% |
+| scene | spai | SPAI [6] | 2,892 | 4,694 | 61.6% |
+| doc | rn50_modft_spectralmask | FakeImageDetection [7] | 1,785 | 9,434 | 18.9% |
+| **Total** | | | **51,004** | **68,396** | **74.6%** |
+
+The results reveal substantial variation in classifier performance across image categories. DCT-based ridge regression [5] achieves near-perfect coverage (99.5%) on the deepfake category, which is expected given that these models were originally trained on face-centric datasets such as FFHQ. SPAI [6] provides the best coverage for five of the seven categories (satellite, object, animal, human, scene), with coverage ranging from 61.6% to 87.9%. The document category presents the most challenging case, where spectral masking on a modified ResNet-50 [7] achieves only 18.9% coverage.
+
+For each true-positive detection, the sentence *"The image also presents artifacts in the frequency domain."* is appended to the existing natural-language explanation in the FakeClue label. This selective strategy ensures that frequency annotations are only applied to images where a classifier provides corroborating evidence, avoiding the introduction of unsupported claims into the training data. The augmentation covers 74.6% of fake training images (51,004 out of 68,396). The test split exhibits consistent coverage at 73.9% (2,359 out of 3,192), indicating that the per-category classifier selection generalizes across the dataset and is not an artifact of overfitting to a particular split.
 
 ### FakeVLM-Extended Architecture
 
