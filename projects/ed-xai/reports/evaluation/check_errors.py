@@ -14,9 +14,13 @@ LABEL_MAP = {
 
 
 def extract_prediction(response: str) -> str | None:
-    match = re.search(r"ASSISTANT:\s*(This is a (fake|real) image)", response, re.IGNORECASE)
+    after_assistant = re.search(r"ASSISTANT:\s*(.*)", response)
+    if not after_assistant:
+        return None
+    first_sentence = after_assistant.group(1).split(".")[0]
+    match = re.search(r"\b(fake|real)\b", first_sentence, re.IGNORECASE)
     if match:
-        return match.group(2).lower()
+        return match.group(1).lower()
     return None
 
 
