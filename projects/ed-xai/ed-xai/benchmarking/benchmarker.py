@@ -28,14 +28,15 @@ def _response_to_pred_and_score(response: str):
     Matches the FakeVLM eval_vllm.py logic: check if 'real' or 'fake' appears
     in the first sentence (split on '.'), with 'real' taking priority.
     Returns (y_pred, y_score): y_pred is 0=fake/1=real, y_score is 1.0/0.0.
-    Defaults to fake (0, 0.0) when undecided.
+    Returns (-1, 0.0) when neither keyword is found, ensuring unrecognized
+    responses are counted as errors regardless of ground truth.
     """
     first_sentence = _extract_assistant_text(response).split('.')[0].lower()
     if 'real' in first_sentence:
         return 1, 1.0
     elif 'fake' in first_sentence:
         return 0, 0.0
-    return 0, 0.0
+    return -1, 0.0
 
 
 class Benchmarker:

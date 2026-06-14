@@ -7,8 +7,9 @@ from .base import MetricFn
 # ---------------------------------------------------------------------------
 
 def _accuracy(y_true: List[int], y_pred: List[int], **kwargs) -> float:
-    from sklearn.metrics import accuracy_score
-    return round(float(accuracy_score(y_true, y_pred)), 4)
+    n = len(y_true)
+    correct = sum(t == p for t, p in zip(y_true, y_pred))
+    return round(correct / n, 4) if n else 0.0
 
 
 def _auc(y_true: List[int], y_score: List[float], **kwargs) -> float:
@@ -21,7 +22,8 @@ def _auc(y_true: List[int], y_score: List[float], **kwargs) -> float:
 
 def _f1(y_true: List[int], y_pred: List[int], **kwargs) -> float:
     from sklearn.metrics import f1_score
-    return round(float(f1_score(y_true, y_pred, zero_division=0)), 4)
+    yp = [p if p in (0, 1) else (1 - t) for t, p in zip(y_true, y_pred)]
+    return round(float(f1_score(y_true, yp, zero_division=0)), 4)
 
 
 def _avg_precision(y_true: List[int], y_score: List[float], **kwargs) -> float:

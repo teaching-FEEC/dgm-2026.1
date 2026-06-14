@@ -2,7 +2,7 @@
                                      Accuracy      F1  Rouge-L     CSS
 Model            Dataset                                              
 Baseline         FakeClue-Test         0.9876  0.9828   0.4950  0.9230
-FFT-Magnitude    FakeClue-Frequency    0.9912  0.9878   0.5706  0.9342
-FFT-Phase        FakeClue-Frequency    0.9900  0.9861   0.5712  0.9344
+FFT-Magnitude    FakeClue-Frequency    0.9892  0.9850   0.5706  0.9342
+FFT-Phase        FakeClue-Frequency    0.9898  0.9859   0.5712  0.9344
 Vicuna           FakeClue-Test         0.9904  0.9867   0.5477  0.9315
 Projector-Vicuna FakeClue-Test         0.9870  0.9819   0.5399  0.9301
