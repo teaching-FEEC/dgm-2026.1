@@ -1,10 +1,10 @@
+# EMGAN - Da fala ao EMG
 
 # EMGAN - From speech to EMG
 
 ## Presentation
 
-This project originated in the context of the graduate course _IA376N - Generative AI: from models to multimodal applications_,
-offered in the first semester of 2026, at Unicamp, under the supervision of Prof. Dr. Paula Dornhofer Paro Costa, from the Department of Computer and Automation Engineering (DCA) of the School of Electrical and Computer Engineering (FEEC).
+This project originated in the context of the graduate course _IA376N - Deep Generative Modeling_, offered in the first semester of 2026 (2026.1), at Unicamp, under the supervision of Prof. Dr. Paula Dornhofer Paro Costa, from the Department of Computer and Automation Engineering (DCA) of the School of Electrical and Computer Engineering (FEEC).
 
 |Name | RA | Specialization|
 |--|--|--|
@@ -14,40 +14,52 @@ offered in the first semester of 2026, at Unicamp, under the supervision of Prof
 
 ## Abstract
 
+The Speech-to-Electromyography (STE) paradigm has gained prominence in data augmentation for Electromyography-to-Speech (ETS) systems, a direction advanced by STE-GAN (Scheck & Schultz, 2023). In parallel, a rapidly growing paradigm in biosignal modeling involves deep tokenizers utilizing Residual Vector Quantization (RVQ) for high-fidelity reconstruction, such as NeuroRVQ (Barmpas et al., 2026). Our work investigates evaluating generated EMG signals by using codec distance as a loss term. While adding this term without the Multi-Time Domain (MTD) loss causes severe instability and mode collapse, combining them marginally improves WER performance while preserving the cross-correlation of the real and generated EMG envelopes.
 
-The STE-GAN model represents a promising approach in generative adversarial frameworks, yet scaling its capabilities across diverse data environments remains a significant challenge. This paper presents the mapping and structural analysis of the STE-GAN model across multiple datasets. While a wide range of repositories was successfully cataloged, their inherent technical complexity and heterogeneity prevented immediate integration into a unified training pipeline. As an initial milestone, the original STE-GAN architecture was successfully executed and validated, establishing a stable performance baseline. To overcome current integration and convergence limitations, we outline the next development phases, which focus on implementing a novel distance metric to optimize generation and introducing structural modifications to the generator. This work lays the foundation for robust multi-subject data synthesis in future iterations.
-
-[PRESENTATION LINK](https://docs.google.com/presentation/d/122uZN8ldLYW1H7PQhn2qsqW1NxxE-XUZY3rv4bdlU4Y/edit?usp=sharing)
+[Presentation Link](https://docs.google.com/presentation/d/122uZN8ldLYW1H7PQhn2qsqW1NxxE-XUZY3rv4bdlU4Y/edit?usp=sharing)
 
 ## Problem Description / Motivation
 
+Silent Speech Interfaces (SSIs) aim to decode speech from non-acoustic physiological signals, enabling communication without audible vocalization. To this end, surface electromyography (sEMG) signals are a promising input, as they capture the underlying muscle activity driving these articulatory movements. However, due to time-consuming data collection procedures and the sensitive nature of biometric information, available datasets are typically small and subject to strict privacy regulations. This data scarcity strongly motivates Speech-to-EMG (STE) modelling to generate synthetic signals, providing a viable data augmentation strategy to improve EMG-to-Speech (ETS) model training.
 
-Surface Electromyography (sEMG) signals of articulatory muscles reflect the speech production process. As such, they are a biosignal of interest for Silent Speech Interfaces (SSIs) [1], which aim to enable speech communication without depending on acoustic speech. However, acquiring these biological signals is notoriously difficult. Subjects must undergo a tiresome recording procedure, resulting in small datasets with low subject variability. Furthermore, the collected data is often lawfully restricted. Consequently, there is a strong motivation for Speech-to-EMG (STE) modeling, which could be explored to generate new, artificial EMG signals to improve ETS model training and mitigate data scarcity.
+STE-GAN (Scheck & Schultz, 2023) addressed this problem by using HuBERT speech units (Hsu et al., 2021) as input for a robust GAN architecture guided by specialized loss functions. Trained on the dataset introduced by Gaddy and Klein (2020), the model demonstrated promising data augmentation capabilities, evidenced by competitive Word Error Rate (WER) performances when generating audio from the synthetic sEMG samples.
 
-To address the issues of data acquisition and aid in the development of robust SSIs, we propose a method of generating synthetic EMG signals based on the STE-GAN architecture [2]. 
+During training, STE-GAN employs a Multi-Time Domain (MTD) loss to measure the fidelity of the generated sEMG against the ground-truth sEMG corresponding to the input audio. Concurrently, deep tokenizers utilizing Residual Vector Quantization (RVQ) have emerged as a robust approach for biosignal representation. A notable example is NeuroRVQ (Barmpas et al., 2026), which distinguishes itself by optimizing for high band-wise reconstruction fidelity. Given that these discrete codecs can also be extracted from STE-GAN's generated signals, optimizing the generator to match the RVQ codecs of the real sEMG presents a promising auxiliary objective.
 
 ## Objective
 
-
-The main goal of this project is to generate reliable EMG data from acoustic speech that is not only similar to the target domain, but also capable of retaining high linguistic accuracy (e.g., maintaining a low Word Error Rate) after being converted back to audio.
-
-The model in [2] has multiple components and losses. This project will introduce and change components and losses in an attempt to surpass the metrics established in the original paper.
+This research aims to enhance the generative capabilities of STE-GAN by introducing a novel codec-matching optimization objective. The primary goal is to evaluate how minimizing the distance between the NeuroRVQ codecs of ground-truth and synthesized sEMG impacts the model's training dynamics and the subsequent viability of the generated data for augmenting speech recognition systems.
 
 ## Methodology
 
+This section outlines the proposed architectural enhancements, experimental design, dataset utilization, and evaluation framework established to achieve the project objectives.
 
+### Proposed Objective Function
+The proposed total generator loss ($\mathcal{L}\_G$) extends the baseline STE-GAN framework (Scheck & Schultz, 2023) by integrating a novel codec-matching loss term ($\mathcal{L}\_{EMGCodec}$). The complete objective function is defined as:
 
-The generative modeling approach that will serve as the baseline for this study is the Speech-to-Electromyography Generative Adversarial Network (STE-GAN) presented in [2]. This approach was found to be particularly compelling due to its strong and reproducible results. Notably, STE-GAN directly converts acoustic speech to EMG signals in an end-to-end fashion, eliminating the need to predict intermediate features. In doing so, it achieved impressive metrics, such as a high Envelope Correlation Coefficient of 0.66 and over 80% Phoneme Accuracy on the generated signals. Furthermore, instead of naively sampling from a Gaussian distribution, the model conditions the generation on a controllable latent space—soft speech units extracted from audio — which importantly enables the model to generalize to speech of unseen speakers. Finally, this choice is strongly motivated by the fact that the authors made their code openly available, which greatly facilitates project reproducibility.
+$$\mathcal{L}\_G=\sum\_{k=1}^K[\mathcal{L}\_{Adv}(G;D\_k)+\lambda\_{FM}\mathcal{L}\_{FM}(G;D\_k)]+\lambda\_{SU}\mathcal{L}\_{SU}(G)+\lambda\_P\mathcal{L}\_P(G)+\lambda\_{TD}\mathcal{L}\_{TD}(G)+\lambda\_{EMGCodec}\mathcal{L}\_{EMGCodec}(G)$$
 
-For the project's development, the main codebase will be built in Python, leveraging libraries such as PyTorch, NumPy, and other data science and signal processing tools. Jupyter Notebooks will be used for interactive coding and evaluation, while GitHub will handle version control and code hosting. Finally, to ensure the models are trained within a feasible timeframe, GPU computing will be relied upon, specifically an NVIDIA RTX 5070 Ti (16 GiB), with the possibility of incorporating additional GPUs as needed.
+where $\mathcal{L}\_{Adv}$, $\mathcal{L}\_{FM}$, $\mathcal{L}\_{SU}$, and $\mathcal{L}\_P$ represent the adversarial, feature matching, soft units, and phoneme losses from the original STE-GAN architecture, respectively. The proposed NeuroRVQ loss ($\mathcal{L}\_{EMGCodec}$) penalizes the mean squared error (MSE) between the discrete representation levels of the ground-truth and synthesized signals:
 
-At first, the results presented in [2] will be reproduced. Then, by evaluating the model on additional datasets (see next session) and testing architectural modification hypotheses, it is expected to both consolidate the architecture for this type of data and improve its evaluation scores.
+$$\mathcal{L}\_{EMGCodec}(G)=\sum\_{j=1}^{N}\mathrm{MSE}\left(\mathbf{Q}\_j(\mathbf{x}),\; \mathbf{Q}\_j\bigl(G(\mathbf{c},\mathbf{s})\bigr)\right)$$
 
-All the metrics presented in [2] will be maintained, as the evaluation will be made based on them. Most importantly, this project will attempt to surpass the correlation between synthetic and real EMG envelope data, as well as the correctness of generated speech from synthetic EMG (WER) reported in the original paper. Additional metrics may also be proposed to evaluate any architectural changes.
+where $N$ denotes the number of NeuroRVQ quantization levels, $\mathbf{x}$ is the real sEMG signal, and $G(\mathbf{c},\mathbf{s})$ represents the generated sEMG conditioned the GT soft SU target sequence $\mathbf{c}$ and the session embedding $\mathbf{s}$ of the EMG signal.
+
+### Experimental Design and Justification
+To systematically evaluate the impact of the proposed codec-matching objective on training stability and signal generation, we conduct a grid-search ablation study. Because both the MTD loss ($\mathcal{L}\_{TD}$) and the NeuroRVQ loss ($\mathcal{L}\_{EMGCodec}$) act as reconstruction fidelity constraints, operating in the continuous time domain and discrete latent space, respectively, we vary their weights to observe their interactions. The experimental grid evaluates all combinations of $\lambda\_{TD} \in \{0, 15\}$ and $\lambda\_{EMGCodec} \in \{0, 1, 7, 15\}$.
+
+### Evaluation Methodology
+To verify whether the primary objective of enhancing STE-GAN's generative quality and data augmentation utility is achieved, the synthesized signals are evaluated across three dimensions based on the protocol by Scheck and Schultz (2023):
+1. **Signal Fidelity:** Measured via the cross-correlation of the real and generated sEMG envelopes.
+2. **Content Preservation:** Assessed through Phoneme Accuracy and Soft Units Accuracy extracted from the generated signals.
+3. **Downstream Utility:** Evaluated using the Word Error Rate (WER) of a downstream speech recognition system trained on the augmented synthetic data. A lower WER directly indicates successful data augmentation.
+
+### Implementation Details
+The framework is implemented in Python, leveraging PyTorch for deep learning modeling and NumPy for numerical signal processing. Model training is accelerated using NVIDIA GPU computing, and training dynamics are monitored via TensorBoard. To ensure environment reproducibility and standardization across different computational setups, the entire workflow is containerized using Docker.
 
 ### Datasets and Evolution
 
-
+Following a dataset curation process that evaluated multiple available corpora, the open-source surface electromyography (sEMG) and speech dataset introduced by Gaddy and Klein (2020) was selected. This choice ensures consistency with the baseline STE-GAN framework while utilizing a standard benchmark that contains parallel recordings of audio and multi-channel sEMG from open and silent speech production. Detailed insights into the curation process and specific dataset characteristics are provided bellow.
 
 | Dataset | Web Address | Subjects | Total Duration | Sample Length | EMG Sampling Rate | Audio Sampling Rate | # Electrodes | Modalities | Availability | Extra Info |
 |--------|-------------|----------|----------------|---------------|-------------------|---------------------|--------------|------------|--------------|------------|
@@ -88,16 +100,9 @@ Here is a mapping of the position of EMG electrodes in the selected datasets (av
 | Tongue                                           | ✔      |               |          |            |                |
 | Unspecified                                      |        |               | ~✔       | ✔          |                |
 
-For this project, our models require datasets containing paired EMG and audio signals. Since this type of data is relatively rare, the 9 publicly available datasets listed above have all been surveyed. Their quality, compatibility, and suitability were thouroughly analysed and it was decided that, for now, the project will continue with the unique use of the Digital Voicing of Silent Speech [4] dataset. 
+The choice for Gaddy and Klein's dataset was primarily motivated by the project's focus on architectural evaluation and the inherent incompatibilities among the surveyed datasets. Each alternative corpus utilizes a unique electrode configuration, differing in both positioning and channel count, which precludes direct data merging. Furthermore, because the primary objective is to investigate the efficacy of the proposed objective function and architectural blocks, isolating the experiments to a single, standardized benchmark provides a controlled environment that eliminates confounding variables arising from cross-dataset variance.
 
-This decision was made based on the fact that each dataset was captured using a distinct channel setup (position and number-wise), which hinders merging between datasets. Also, it was decided that the blocks in the architecture are most important for the project, so the focus has shifted towards it.
-
-Regarding the characteristics of the datasets, all audio was available as .wav files and sampling frequency ranged from 16 kHz to 48 kHz. The EMG data came in various formats, with it's sampling frequency varying from 256 to 2048 Hz. Phonemes were captured for each sliding window of size 27ms and stride of 10ms, when available. All samples have a duration of a few seconds.
-
-No transformations were applied up to now, except for the main dataset [4], which was preprocessed as described in [2].
-
-
-This dataset uses only one subject and 6 channels, which were placed in the following muscles:
+The chosen dataset is comprised of audio and EMG files of one subject, with 8 monopolar EMG channels, which were placed in the following muscles:
 
 | | Location | Estimated muscle(s) |
 | :--- | :--- | :--- |
@@ -114,31 +119,72 @@ This dataset uses only one subject and 6 channels, which were placed in the foll
 
 ### Workflow
 
-
-
 ![Project Workflow](images/workflow.svg)
 
 ## Experiments, Results, and Discussion of Results
 
+### Training and validation loss curves monitored via TensorBoard
 
-In addition to studying the available datasets, we were also exploring the STEGAN paper itself, along with related concepts and the broader field of speech processing. This helped us identify potential approaches and draw inspiration from existing methods that could be adapted to our problem.
+<div align="center">
+  <img src="images/generatorloss.png" width="30%" />
+  <img src="images/discriminatorloss.png" width="30%" />
+  <img src="images/fmloss.png" width="30%" />
+  <br><br>
+  <img src="images/phonemeloss.png" width="22%" />
+  <img src="images/suloss.png" width="22%" />
+  <img src="images/mtdloss.png" width="22%" />
+  <img src="images/nrvqloss.png" width="22%" />
+</div>
 
-To familiarize ourselves with the concepts, we held discussions on various *Speech processing*, *Text-to-Speech* and *Voice Conversion* models and then studied each of these approaches in greater depth ([Presentation 1](https://canva.link/8kdrzu5e2891t9p),[ Presentation 2](https://canva.link/3vccwzqm0s07sf2)). A brief introductory presentation was shared with the group to align the main ideas. Throughout this process, we explored multiple strategies and conducted practical experiments ([Speech processing notebookm](https://colab.research.google.com/drive/1Ps4oY2rFUA9dYppG8Mc6FwB1Bl5MQLa_?usp=sharing), [RVQ concept notebook](https://colab.research.google.com/drive/1shZx8IXlm9ybhCvpW0WGF2YiexW6Cv0s?usp=sharing)) focusing primarily on the use of codecs. Based on these findings, we proposed applying codec-based tests in the EMG context to evaluate their potential for this type of signal.
+### Tabulated objective metrics on validation set
 
+| ↓ WER | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| :--- | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=0$ | **11,11%** | 100,00% | 83,33% | 66,67% |
+| $\lambda\_{TD}=15$ | 13,96% | **12,50%** | 14,29% | 89,18% |
 
-Such discussions were essential for developing a deeper understanding of the problem and enabled us to propose ways to tackle it. Among the most relevant proposals, the following were selected:
+<br>
 
+| ↓ CER | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| :--- | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=0$ | **4,79%** | 93,42% | 76,85% | 47,23% |
+| $\lambda\_{TD}=15$ | 6,58% | **5,92%** | 6,74% | 79,49% |
 
-1. The addition of an EMG-specific pre-trained tokenizer to complement the already present EMG Encoder (trained on audio features). This will serve as a distance metric between the real and fake EMGs, as well as a new loss to be propagated back through the generator.
+<br>
 
-2. A new, attention-based generator to reduce the amount of CNN layers used originally.
+| ↑ Env CC | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| :--- | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=0$ | 0,48 | 0,09 | 0,46 | 0,50 |
+| $\lambda\_{TD}=15$ | 0,60 | **0,59** | **0,59** | 0,49 |
 
-For the first item, a SOTA self-supervised foundational model for EEGs and EMGs was chosen, the NeuroRVQ [12]. It surpasses already consolidated foundational models such as CBRAMOD [13] and Labram [14].
-The second item's implementation details are yet to be decided. For now, no partial results regarding these changes were obtained.
+<br>
 
-Only the original model [2] was tested with dataset [4] and results similar to what the original authors reported were obtained. Now, with the proposals well defined, we concluded the exploration phase and began the experimentation phase.
+| ↓ SU L1 | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| :--- | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=0$ | 1,48 | 7,89 | 6,20 | 4,39 |
+| $\lambda\_{TD}=15$ | 1,81 | 1,79 | 1,85 | 6,76 |
 
+### Audio samples
 
+> If audio player not displaying, your browser might not be compatible with the audio tag.
+
+| Sample | Audio |
+| :--- | :--- |
+| **Baseline (Audio -> SU -> Audio)** | <audio controls src="audios/5-4-11_vp_baseline.wav"></audio> |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=0$ (No EMG Reconstruction Loss)** | <audio controls src="audios/5-4-11_vp_mtd0nrvq0.wav"></audio> |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=1$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq1.wav"></audio> |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=7$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq7.wav"></audio> |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=15$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq15.wav"></audio> |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=0$ (Raw STE-GAN)** | <audio controls src="audios/5-4-11_vp_mtd15nrvq0.wav"></audio> |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq1.wav"></audio> |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=7$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq7.wav"></audio> |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=15$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq15.wav"></audio> |
+
+### Discussion
+
+- We observed the same phenomena described by STE-GAN authors, in that removing the EMG reconstruction loss (MTD Loss), a noticeable improvement in WER is obtained, but in detriment of the envelope cross-correlation.
+- The EMG Codec loss isn't able to substitute the MTD loss. The metrics worsen (66% WER, 0.5 Env CC, 4.39 SU L1) and generated audio becomes much more ininteligible.
+- When used as a complement to the MTD loss, using $\lambda\_{EMGCodec}=1$ achieved marginally more comprehensible audios (12.5% WER vs 13.96% from original STE-GAN) while keeping the Envelope CC (0.59 vs 0.6), which the original STE-GAN wasn't able to acomplish by removing the MTD Loss, the only scenario that obtained better WER (11.11%) than our proposal. This behavior shows as well in Character Error Rate (CER) and in the L1 distance of the soft speech units (SUs).
 
 ## Conclusion
 
@@ -146,10 +192,7 @@ The mapping and structural analysis of the STE-GAN model [2] has been presented,
 
 As an initial partial result, the execution and validation of the original model were successfully consolidated, establishing a stable baseline for planned modifications. Moving forward, next steps will focus on two essential development fronts: the implementation of a new distance metric to optimize the generator and structural changes to the generator itself. These updates aim to enhance the model's generalization capabilities across diverse subjects.
 
-
-
 ## Bibliographic References
-
 
 1. T. Schultz, M. Wand, T. Hueber, D. J. Krusienski, C. Herff, and J. S. Brumberg, “Biosignal-based spoken communication: A survey,” IEEE/ACM Transactions on Audio, Speech and Language
 Processing, vol. 25, no. 12, pp. 2257–2271, 2017.
