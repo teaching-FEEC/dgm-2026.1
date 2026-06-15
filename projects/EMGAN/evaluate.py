@@ -38,6 +38,8 @@ from omegaconf import OmegaConf
 from tqdm import tqdm
 import jiwer
 
+from scipy import signal # addition
+
 # ======================================================================
 # CONFIG  -- edite aqui
 # ======================================================================
@@ -159,6 +161,90 @@ def envelope_metrics(real_emg: torch.Tensor, pred_emg: torch.Tensor, window: int
     l2 = torch.sqrt(torch.sum((env_real - env_pred) ** 2, dim=1)).mean().item()
     return env_cc, cc_per_channel, l1_per_channel.detach().cpu().tolist(), l1_total, l2
 
+def coherence(real_emg: torch.Tensor, pred_emg: torch.Tensor, intervals: list):
+
+    dic = {}
+    win_length = 200 # for application of Hann
+    hop_length = 100
+    n_fft = win_length # number of fft size
+
+    for key in list(intervals):
+        mean_cohe = 0
+        for channel in range(8): # loop over each channel
+            # Ensure signals are 1D float tensors
+            x = real_emg[:,channel]
+            y = pred_emg[:,channel]
+            
+            # Generate standard Hann window
+            window = torch.hann_window(win_length, device=x.device)
+            
+            # Compute short-time Fourier transforms (STFT)
+            X = torch.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window, return_complex=True, center=False)
+            Y = torch.stft(y, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window=window, return_complex=True, center=False)
+
+            # resulting window
+            cohe_win = X.shape[0]
+            
+            # Calculate Auto Power Spectral Densities (PSD) by averaging across time frames
+            Pxx = torch.mean(X.abs() ** 2, dim=-1)
+            Pyy = torch.mean(Y.abs() ** 2, dim=-1)
+            
+            # Calculate Cross Power Spectral Density (CPSD)
+            Pxy = torch.mean(X * torch.conj(Y), dim=-1)
+            
+            # Compute Magnitude-Squared Coherence - for each window
+            coherence = (Pxy.abs() ** 2) / (Pxx * Pyy + 1e-8)
+
+            new_res = (EMG_FS/2)/cohe_win # new resolution
+            mean_cohe += coherence[int(key[0]/new_res):int(key[1]/new_res)].mean().item() # aggregates coherences accross channels
+
+        dic['cohe_'+str(key[0])+'-'+str(key[1])+'_Hz'] = mean_cohe/8
+
+    return list(dic.values())
+
+def mse_psd(real_emg: torch.Tensor, pred_emg: torch.Tensor, intervals: list):
+
+    dic = {}
+    win_length = 200 # for application of Hann
+    hop_length = 100
+    n_fft = win_length # number of fft size
+
+    for key in list(intervals):
+        mean_cohe = 0
+        for channel in range(8): # loop over each channel
+            # Ensure signals are 1D float tensors
+            x = real_emg[:,channel].numpy()
+            y = pred_emg[:,channel].numpy()
+            
+            # nperseg controls the segment length (affects frequency resolution vs smoothing)
+            _, psd_x = signal.welch(
+                x=x, 
+                fs=EMG_FS, 
+                window='hann', 
+                nperseg=win_length, 
+                noverlap=hop_length, 
+                scaling='density'
+            )
+
+            _, psd_y = signal.welch(
+                x=y, 
+                fs=EMG_FS, 
+                window='hann', 
+                nperseg=win_length, 
+                noverlap=hop_length, 
+                scaling='density'
+            )
+
+            # normalization
+            psd_x_normalized = (psd_x[int(key[0]/new_res):int(key[1]/new_res)] - psd_x.mean())/psd_x.std()
+            psd_y_normalized = (psd_y[int(key[0]/new_res):int(key[1]/new_res)] - psd_y.mean())/psd_y.std()
+
+            new_res = (EMG_FS/2)/psd_x.shape[0] # new resolution
+            mean_cohe += np.mean((psd_y_normalized - psd_x_normalized)**2) # aggregates coherences accross channels
+
+        dic['cohe_'+str(key[0])+'-'+str(key[1])+'_Hz'] = mean_cohe/8
+
+    return list(dic.values())
 
 def _to_2d(su: torch.Tensor) -> torch.Tensor:
     """Normaliza SU para [T, D] em CPU (remove dim de batch se houver)."""
@@ -370,6 +456,7 @@ def main():
         "su_l1", "su_l2",
         "transcription_gen", "wer_gen", "cer_gen",
         "audio_path_gen", "emg_path_gen", "error",
+        "cohe" # adicionado
     ]
     results_done = load_done_keys(RESULTS_CSV) if RESUME else set()
     results_writer = CsvWriter(RESULTS_CSV, fieldnames=results_fields)
@@ -444,6 +531,12 @@ def main():
                     real_emg.detach().cpu(), pred_emg.detach().cpu(), ENV_WINDOW
                 )
 
+                # --- COHERENCE ---
+                dict_cohe = {(20, 250): []} # frequency intervals for coherence metric
+                list_cohe = mse_psd(
+                    real_emg.detach().cpu(), pred_emg.detach().cpu(), dict_cohe.keys()
+                )
+
                 # --- EMG fake -> SU predito ---
                 pred_su = encode_su(pred_emg, netenc, DEVICE)  # [1, T', D]
 
@@ -477,6 +570,7 @@ def main():
                     "audio_path_gen": str(audio_path.resolve()),
                     "emg_path_gen": str(emg_path.resolve()),
                     "error": "",
+                    "cohe": f"{list_cohe[0]:.4f}",
                 })
             except Exception as e:
                 results_writer.write({
@@ -514,7 +608,8 @@ def write_summary():
                 continue
             m = row["model_name"]
             d = agg.setdefault(m, {"env_cc": [], "env_l1": [], "env_l2": [],
-                                   "su_l1": [], "su_l2": [], "wer": [], "cer": [], "n": 0})
+                                   "su_l1": [], "su_l2": [], "wer": [], "cer": [],
+                                   "cohe": [], "n": 0})
             try:
                 d["env_cc"].append(float(row["env_cc"]))
                 d["env_l1"].append(float(row["env_l1_total"]))
@@ -523,6 +618,7 @@ def write_summary():
                 d["su_l2"].append(float(row["su_l2"]))
                 d["wer"].append(float(row["wer_gen"]))
                 d["cer"].append(float(row["cer_gen"]))
+                d["cohe"].append(float(row["cohe"]))
                 d["n"] += 1
             except (ValueError, KeyError):
                 pass
@@ -533,12 +629,13 @@ def write_summary():
     with open(SUMMARY_CSV, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["model_name", "n_ok", "mean_env_cc", "mean_env_l1", "mean_env_l2",
-                    "mean_su_l1", "mean_su_l2", "mean_wer", "mean_cer"])
+                    "mean_su_l1", "mean_su_l2", "mean_wer", "mean_cer", "mean_cohe"])
         for m, d in agg.items():
             w.writerow([m, d["n"], f"{mean(d['env_cc']):.4f}",
                         f"{mean(d['env_l1']):.6f}", f"{mean(d['env_l2']):.6f}",
                         f"{mean(d['su_l1']):.6f}", f"{mean(d['su_l2']):.6f}",
-                        f"{mean(d['wer']):.4f}", f"{mean(d['cer']):.4f}"])
+                        f"{mean(d['wer']):.4f}", f"{mean(d['cer']):.4f}",
+                        f"{mean(d['cohe']):.4f}"])
 
 
 if __name__ == "__main__":
