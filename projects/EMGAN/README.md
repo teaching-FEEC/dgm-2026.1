@@ -24,7 +24,7 @@ Silent Speech Interfaces (SSIs) aim to decode speech from non-acoustic physiolog
 
 STE-GAN (Scheck & Schultz, 2023) addressed this problem by using HuBERT speech units (Hsu et al., 2021) as input for a robust GAN architecture guided by specialized loss functions. Trained on the dataset introduced by Gaddy and Klein (2020), the model demonstrated promising data augmentation capabilities, evidenced by competitive Word Error Rate (WER) performances when generating audio from the synthetic sEMG samples.
 
-During training, STE-GAN employs a Multi-Time Domain (MTD) loss to measure the fidelity of the generated sEMG against the ground-truth sEMG corresponding to the input audio. Concurrently, deep tokenizers utilizing Residual Vector Quantization (RVQ) have emerged as a robust approach for biosignal representation. A notable example is NeuroRVQ (Barmpas et al., 2026), which distinguishes itself by optimizing for high band-wise reconstruction fidelity. Given that these discrete codecs can also be extracted from STE-GAN's generated signals, optimizing the generator to match the RVQ codecs of the real sEMG presents a promising auxiliary objective.
+During training, STE-GAN employs a Multi-Time Domain (MTD) Loss to measure the fidelity of the generated sEMG against the ground-truth sEMG corresponding to the input audio. Concurrently, deep tokenizers utilizing Residual Vector Quantization (RVQ) have emerged as a robust approach for biosignal representation. A notable example is NeuroRVQ (Barmpas et al., 2026), which distinguishes itself by optimizing for high band-wise reconstruction fidelity. Given that these discrete codecs can also be extracted from STE-GAN's generated signals, optimizing the generator to match the RVQ codecs of the real sEMG presents a promising auxiliary objective.
 
 ## Objective
 
@@ -32,21 +32,21 @@ This research aims to enhance the generative capabilities of STE-GAN by introduc
 
 ## Methodology
 
-This section outlines the proposed architectural enhancements, experimental design, dataset utilization, and evaluation framework established to achieve the project objectives.
+This section outlines the proposed architectural enhancements, experimental design, evaluation framework and dataset utilization established to achieve the project objectives.
 
 ### Proposed Objective Function
 The proposed total generator loss ($\mathcal{L}\_G$) extends the baseline STE-GAN framework (Scheck & Schultz, 2023) by integrating a novel codec-matching loss term ($\mathcal{L}\_{EMGCodec}$). The complete objective function is defined as:
 
 $$\mathcal{L}\_G=\sum\_{k=1}^K[\mathcal{L}\_{Adv}(G;D\_k)+\lambda\_{FM}\mathcal{L}\_{FM}(G;D\_k)]+\lambda\_{SU}\mathcal{L}\_{SU}(G)+\lambda\_P\mathcal{L}\_P(G)+\lambda\_{TD}\mathcal{L}\_{TD}(G)+\lambda\_{EMGCodec}\mathcal{L}\_{EMGCodec}(G)$$
 
-where $\mathcal{L}\_{Adv}$, $\mathcal{L}\_{FM}$, $\mathcal{L}\_{SU}$, and $\mathcal{L}\_P$ represent the adversarial, feature matching, soft units, and phoneme losses from the original STE-GAN architecture, respectively. The proposed NeuroRVQ loss ($\mathcal{L}\_{EMGCodec}$) penalizes the mean squared error (MSE) between the discrete representation levels of the ground-truth and synthesized signals:
+where $\mathcal{L}\_{Adv}$, $\mathcal{L}\_{FM}$, $\mathcal{L}\_{SU}$, and $\mathcal{L}\_P$ represent the adversarial, feature matching, soft units, and phoneme losses from the original STE-GAN architecture, respectively. The proposed EMG Codec loss ($\mathcal{L}\_{EMGCodec}$) penalizes the mean squared error (MSE) between the discrete representation levels of the ground-truth and synthesized signals:
 
 $$\mathcal{L}\_{EMGCodec}(G)=\sum\_{j=1}^{N}\mathrm{MSE}\left(\mathbf{Q}\_j(\mathbf{x}),\; \mathbf{Q}\_j\bigl(G(\mathbf{c},\mathbf{s})\bigr)\right)$$
 
-where $N$ denotes the number of NeuroRVQ quantization levels, $\mathbf{x}$ is the real sEMG signal, and $G(\mathbf{c},\mathbf{s})$ represents the generated sEMG conditioned the GT soft SU target sequence $\mathbf{c}$ and the session embedding $\mathbf{s}$ of the EMG signal.
+where $N$ denotes the number of NeuroRVQ quantization levels, $\mathbf{x}$ is the real sEMG signal, and $G(\mathbf{c},\mathbf{s})$ represents the generated sEMG conditioned the ground-truth soft SU target sequence $\mathbf{c}$ and the session embedding $\mathbf{s}$ of the EMG signal.
 
 ### Experimental Design and Justification
-To systematically evaluate the impact of the proposed codec-matching objective on training stability and signal generation, we conduct a grid-search ablation study. Because both the MTD loss ($\mathcal{L}\_{TD}$) and the NeuroRVQ loss ($\mathcal{L}\_{EMGCodec}$) act as reconstruction fidelity constraints, operating in the continuous time domain and discrete latent space, respectively, we vary their weights to observe their interactions. The experimental grid evaluates all combinations of $\lambda\_{TD} \in \{0, 15\}$ and $\lambda\_{EMGCodec} \in \{0, 1, 7, 15\}$.
+To systematically evaluate the impact of the proposed codec-matching objective on training stability and signal generation, we conduct a grid-search ablation study. Because both the MTD loss ($\mathcal{L}\_{TD}$) and the EMG Codec loss ($\mathcal{L}\_{EMGCodec}$) act as reconstruction fidelity constraints, operating in the continuous time domain and discrete latent space, respectively, we vary their weights to observe their interactions. The experimental grid evaluates all combinations of $\lambda\_{TD} \in \{0, 15\}$ and $\lambda\_{EMGCodec} \in \{0, 1, 7, 15\}$.
 
 ### Evaluation Methodology
 To verify whether the primary objective of enhancing STE-GAN's generative quality and data augmentation utility is achieved, the synthesized signals are evaluated across three dimensions based on the protocol by Scheck and Schultz (2023):
@@ -106,12 +106,12 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 
 | | Location | Estimated muscle(s) |
 | :--- | :--- | :--- |
-| 1 | left cheek just above mouth | Zygomaticus major, w/possible crosstalk with Zygomaticus minor |
+| 1 | left cheek just above mouth | Zygomaticus major, with possible crosstalk with Zygomaticus minor |
 | 2 | left corner of chin | Depressor anguli oris |
 | 3 | below chin back 3 cm | Sternohyoid |
 | 4 | throat 3 cm left from Adam’s apple | Omohyoid |
 | 5 | mid-jaw right | Masseter |
-| 6 | right cheek just below mouth | Orbicularis oris, w/possible (strong) crosstalk with Risorius |
+| 6 | right cheek just below mouth | Orbicularis oris, with possible (strong) crosstalk with Risorius |
 | 7 | right cheek 2 cm from nose | Levator labii superioris |
 | 8 | back of right cheek, 4 cm in front of ear | Lateral pterygoid |
 | ref | below left ear | - |
@@ -126,14 +126,15 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 ### Training and validation loss curves monitored via TensorBoard
 
 <div align="center">
-  <img src="images/generatorloss.png" width="30%" />
-  <img src="images/discriminatorloss.png" width="30%" />
-  <img src="images/fmloss.png" width="30%" />
+  <img src="images/generatorloss.png" width="45%" />
+  <img src="images/discriminatorloss.png" width="45%" />
   <br><br>
-  <img src="images/phonemeloss.png" width="22%" />
-  <img src="images/suloss.png" width="22%" />
-  <img src="images/mtdloss.png" width="22%" />
-  <img src="images/nrvqloss.png" width="22%" />
+  <img src="images/mtdloss.png" width="45%" />
+  <img src="images/emgcloss.png" width="45%" />
+  <br><br>
+  <img src="images/fmloss.png" width="30%" />
+  <img src="images/phonemeloss.png" width="30%" />
+  <img src="images/suloss.png" width="30%" />
 </div>
 
 ### Tabulated objective metrics on validation set
@@ -166,31 +167,33 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 
 ### Audio samples
 
-> If audio player not displaying, your browser might not be compatible with the audio tag.
-
 | Sample | Audio |
 | :--- | :--- |
-| **Baseline (Audio -> SU -> Audio)** | <audio controls src="audios/5-4-11_vp_baseline.wav"></audio> |
-| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=0$ (No EMG Reconstruction Loss)** | <audio controls src="audios/5-4-11_vp_mtd0nrvq0.wav"></audio> |
-| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=1$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq1.wav"></audio> |
-| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=7$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq7.wav"></audio> |
-| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=15$** | <audio controls src="audios/5-4-11_vp_mtd0nrvq15.wav"></audio> |
-| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=0$ (Raw STE-GAN)** | <audio controls src="audios/5-4-11_vp_mtd15nrvq0.wav"></audio> |
-| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq1.wav"></audio> |
-| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=7$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq7.wav"></audio> |
-| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=15$** | <audio controls src="audios/5-4-11_vp_mtd15nrvq15.wav"></audio> |
+| **Baseline (Audio -> SU -> Audio)** | [▶️ Link](audios/5-4-11_vp_baseline.wav) |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=0$ (No EMG Reconstruction Loss)** | [▶️ Link](audios/5-4-11_vp_mtd0nrvq0.wav) |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=1$** | [▶️ Link](audios/5-4-11_vp_mtd0nrvq1.wav) |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=7$** | [▶️ Link](audios/5-4-11_vp_mtd0nrvq7.wav) |
+| **$\lambda\_{TD}=0$, $\lambda\_{EMGCodec}=15$** | [▶️ Link](audios/5-4-11_vp_mtd0nrvq15.wav) |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=0$ (Raw STE-GAN)** | [▶️ Link](audios/5-4-11_vp_mtd15nrvq0.wav) |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$** | [▶️ Link](audios/5-4-11_vp_mtd15nrvq1.wav) |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=7$** | [▶️ Link](audios/5-4-11_vp_mtd15nrvq7.wav) |
+| **$\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=15$** | [▶️ Link](audios/5-4-11_vp_mtd15nrvq15.wav) |
 
 ### Discussion
 
-- We observed the same phenomena described by STE-GAN authors, in that removing the EMG reconstruction loss (MTD Loss), a noticeable improvement in WER is obtained, but in detriment of the envelope cross-correlation.
-- The EMG Codec loss isn't able to substitute the MTD loss. The metrics worsen (66% WER, 0.5 Env CC, 4.39 SU L1) and generated audio becomes much more ininteligible.
-- When used as a complement to the MTD loss, using $\lambda\_{EMGCodec}=1$ achieved marginally more comprehensible audios (12.5% WER vs 13.96% from original STE-GAN) while keeping the Envelope CC (0.59 vs 0.6), which the original STE-GAN wasn't able to acomplish by removing the MTD Loss, the only scenario that obtained better WER (11.11%) than our proposal. This behavior shows as well in Character Error Rate (CER) and in the L1 distance of the soft speech units (SUs).
+The ablation study reveals a nuanced interplay between the MTD loss and the proposed EMG Codec loss. Training with the EMG Codec loss as the sole reconstruction objective ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=1$) resulted in severe mode collapse and unusable outputs, as evidenced by the near-chance WER and the audio samples. Even at higher codec weights ($\lambda_{EMGCodec}=15$) in the absence of MTD, the generator remained unstable, yielding a WER of 66.67% and an envelope cross-correlation of only 0.50, confirming that the discrete codec-matching term alone cannot ensure signal fidelity.
+
+Consistent with the original STE-GAN findings, we replicated the trade-off wherein omitting the MTD loss ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=0$) lowers WER (11.11%) but substantially degrades envelope cross-correlation (0.48), while full STE-GAN ($\lambda_{TD}=15$, $\lambda_{EMGCodec}=0$) achieves higher reconstruction fidelity (0.60) at the cost of increased WER (13.96%).
+
+Notably, the discriminator loss curves indicate that higher weights assigned to the EMG Codec loss consistently enabled the discriminator to attain lower loss values. Although this observation is not conclusive, it suggests that the codec-matching objective may weaken the generator's adversarial feedback, making real and generated samples more easily separable. This dynamic could partly explain the instability encountered in settings without the MTD loss, as the generator would lack a strong reconstruction gradient to counterbalance an increasingly confident discriminator.
+
+Crucially, combining both objectives at $\lambda_{TD}=15$ and a modest codec weight ($\lambda_{EMGCodec}=1$) yields a favorable shift in this trade-off: WER improves to 12.50% while envelope cross-correlation remains virtually unchanged at 0.59 compared to the baseline STE-GAN’s 0.60. Thus, the proposed auxiliary codec loss, when coupled with the MTD constraint, enhances downstream speech recognition performance without the compromise in signal reconstruction that previously accompanied WER gains.
 
 ## Conclusion
 
-The mapping and structural analysis of the STE-GAN model [2] has been presented, alongside multiple datasets. Although a wide range of datasets was successfully cataloged during this phase, their inherent technical complexity and heterogeneity prevented immediate integration for training.
+This work investigated the use of mean squared error between NeuroRVQ codecs as a reconstruction objective within the STE-GAN framework for speech-to-EMG generation. Our experiments demonstrate that the proposed codec-matching loss, when applied in isolation, leads to severe training instability, evidenced by mode collapse and a marked decline in the discriminator loss, suggesting a fundamental mismatch with the adversarial setup. However, when combined with the multi-time domain loss as a stabilizing signal, a modest codec weight yields a slight but notable improvement in word error rate (12.50% vs. 13.96%) while fully preserving envelope cross-correlation (0.59 vs. 0.60), a trade-off unattainable in the original STE-GAN.
 
-As an initial partial result, the execution and validation of the original model were successfully consolidated, establishing a stable baseline for planned modifications. Moving forward, next steps will focus on two essential development fronts: the implementation of a new distance metric to optimize the generator and structural changes to the generator itself. These updates aim to enhance the model's generalization capabilities across diverse subjects.
+These findings, while preliminary, indicate that discrete codec-based objectives may serve as useful auxiliary constraints, though their interaction with adversarial training demands careful balancing. Several open questions remain for future investigation: whether similarity-based metrics (e.g., cosine similarity) could offer more stable gradients than MSE; whether this approach is better suited to non-adversarial generative frameworks; and whether directly predicting codecs as an intermediate generator output, rather than extracting them post hoc, could yield stronger control over the generated signal. Addressing these directions may clarify the broader applicability of deep tokenizer losses in biosignal generation.
 
 ## Bibliographic References
 
