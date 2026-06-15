@@ -236,10 +236,11 @@ def mse_psd(real_emg: torch.Tensor, pred_emg: torch.Tensor, intervals: list):
             )
 
             # normalization
+            new_res = (EMG_FS/2)/psd_x.shape[0] # new resolution
+            
             psd_x_normalized = (psd_x[int(key[0]/new_res):int(key[1]/new_res)] - psd_x.mean())/psd_x.std()
             psd_y_normalized = (psd_y[int(key[0]/new_res):int(key[1]/new_res)] - psd_y.mean())/psd_y.std()
 
-            new_res = (EMG_FS/2)/psd_x.shape[0] # new resolution
             mean_cohe += np.mean((psd_y_normalized - psd_x_normalized)**2) # aggregates coherences accross channels
 
         dic['cohe_'+str(key[0])+'-'+str(key[1])+'_Hz'] = mean_cohe/8
