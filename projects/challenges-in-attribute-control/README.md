@@ -356,12 +356,6 @@ The following schedule is proposed for each stage of the project:
 ![Schedule - IA Generative Project](https://github.com/user-attachments/assets/90eafcc8-3f88-4fc1-b792-126e120d7ae2)
 
 
-
-
-### Conclusion
-By analyzing the results from our experiments, we concluded that the problem of attribute binding on diffusion models, in this case Stable Diffusion, comes from different components of the architecture instead of having just one responsible. The way the training dataset was generated, the problem of embedding representation on CLIP and the cross-attention mechanism failing to pay attention on certain attributes combined makes this an intrinsic problem of this architecture.
-
-
 ### Fine-tuning Dataset, Results and Discussion
 
 After the previous experiments, the project moved from diagnostic analysis to model adaptation. The dataset analysis, CLIP embedding tests, and cross-attention inspection suggested that Stable Diffusion has more difficulty binding uncommon color attributes to the correct object region when the requested pair conflicts with common visual priors. Based on this evidence, a specific fine-tuning dataset was created to reinforce rare object-color associations while also preserving examples that the original model already handled correctly.
@@ -389,6 +383,14 @@ However, the control group decreased from 96.3% to 84.2%. This indicates that th
 The NPMI analysis also supports this interpretation. Before fine-tuning, accuracy had a stronger positive correlation with NPMI, suggesting that the baseline model performed better on statistically common associations. After LoRA fine-tuning, this correlation became weaker, indicating that the model became less dependent on prior object-color associations from the training distribution.
 
 Qualitatively, the validation images show visible improvements in some rare prompts, such as blue banana and orange polar bear. Still, some generated images continue to show partial color application or confusion between the object and the background. Thus, the fine-tuning improved attribute binding, especially for rare combinations, but did not completely solve the problem. Future work should focus on reducing regression in control pairs and improving the stability of color-object binding across different prompts.
+
+### Conclusion
+
+The results of this project suggest that attribute binding failures in Stable Diffusion are not caused by a single factor, but by the interaction of different parts of the model pipeline. The dataset analysis showed that rare object-color combinations are weakly represented in the training distribution, while the CLIP and cross-attention experiments indicated that the model can recognize objects more easily than it can associate uncommon attributes with the correct visual region.
+
+The LoRA fine-tuning helped reduce this limitation, improving the model’s performance on rare treated and held-out pairs. This suggests that targeted fine-tuning can improve attribute control and support some degree of generalization. However, the decrease observed in the control group shows that this improvement may come with a trade-off, since some combinations that were previously stable became less accurate after fine-tuning.
+
+Overall, the project shows that attribute binding is a systemic challenge in text-to-image diffusion models. Although fine-tuning can improve rare attribute-object associations, future work should focus on making this improvement more stable, especially by using more balanced datasets and strategies that preserve the model’s previous knowledge.
 
 ### Bibliographic references
 
