@@ -52,8 +52,8 @@ Especially, another training setup was also proposed for the $[\lambda\_{TD} = 1
 
 ### Evaluation Methodology
 To verify whether the primary objective of enhancing STE-GAN's generative quality and data augmentation utility is achieved, the synthesized signals are evaluated across three dimensions based on the protocol by Scheck and Schultz (2023):
-1. **Signal Fidelity:** Measured via the cross-correlation of the real and generated sEMG envelopes.
-2. **Content Preservation:** Assessed through Phoneme Accuracy and Soft Units Accuracy extracted from the generated signals.
+1. **Signal Fidelity:** Measured via the cross-correlation and the spectrogram L2 distance (coherence) between the real and generated sEMG envelopes.
+2. **Content Preservation:** Assessed through Phoneme Accuracy and Soft Speech Units Distance extracted from the generated signals.
 3. **Downstream Utility:** Evaluated using the Word Error Rate (WER) of a downstream speech recognition system trained on the augmented synthetic data. A lower WER directly indicates successful data augmentation.
 
 ### Implementation Details
