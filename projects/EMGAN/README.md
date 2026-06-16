@@ -147,42 +147,42 @@ Below, the project's workflow is shown as a general guideline to facilitate repr
 
 | ↓ WER | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=0$ | **11,11%** | 100,00% | 83,33% | 66,67% |
-| $\lambda\_{TD}=15$ | 13,96% | **12,50%** | 14,29% | 89,18% |
+| $\lambda\_{TD}=0$ | **11.11%** | 100.00% | 83.33% | 66.67% |
+| $\lambda\_{TD}=15$ | 13.96% | **12.50%** | 14.29% | 89.18% |
 
 <br>
 
 | ↓ CER | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=0$ | **4,79%** | 93,42% | 76,85% | 47,23% |
-| $\lambda\_{TD}=15$ | 6,58% | **5,92%** | 6,74% | 79,49% |
+| $\lambda\_{TD}=0$ | **4.79%** | 93.42% | 76.85% | 47.23% |
+| $\lambda\_{TD}=15$ | 6.58% | **5.92%** | 6.74% | 79.49% |
 
 <br>
 
 | ↑ Env CC | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=0$ | 0,48 | 0,09 | 0,46 | 0,50 |
-| $\lambda\_{TD}=15$ | 0,60 | **0,59** | **0,59** | 0,49 |
+| $\lambda\_{TD}=0$ | 0.48 | 0.09 | 0.46 | 0.50 |
+| $\lambda\_{TD}=15$ | 0.60 | **0.59** | **0.59** | 0.49 |
 
 <br>
 
 | ↓ SU L2 | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=0$ | 1,48 | 7,89 | 6,20 | 4,39 |
-| $\lambda\_{TD}=15$ | 1,81 | 1,79 | 1,85 | 6,76 |
+| $\lambda\_{TD}=0$ | 1.48 | 7.89 | 6.20 | 4.39 |
+| $\lambda\_{TD}=15$ | 1.81 | 1.79 | 1.85 | 6.76 |
 
 <br>
 
 | ↓ COHERENCE | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
 | $\lambda\_{TD}=0$ | 0.12 | 0.45 | 0.24 | 0.24 |
-| $\lambda\_{TD}=15$ | 0.30 | 0.11 | 0.18 | 0.24 |
+| $\lambda\_{TD}=15$ | 0.30 | **0.11** | 0.18 | 0.24 |
 
 <br>
 
-| With sampling | ↓ WER | ↓ CER | ↑ Env CC | ↓ SU L1 | ↓ COHERENCE |
+| With sampling | ↓ WER | ↓ CER | ↑ Env CC | ↓ SU L2 | ↓ COHERENCE |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$ | 17.70% | 9.15% | 0.59 | 1.85 | 0.11 |
+| $\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$ | 17.70% | 9.15% | **0.59** | 1.85 | **0.11** |
 
 ### Audio samples
 
@@ -207,6 +207,8 @@ Consistent with the original STE-GAN findings, the trade-off wherein omitting th
 Notably, the discriminator loss curves indicate that higher weights assigned to the EMG Codec loss consistently enabled the discriminator to attain lower loss values. Although this observation is not conclusive, it suggests that the codec-matching objective may weaken the generator's adversarial feedback, making real and generated samples more easily separable. This dynamic could partly explain the instability encountered in settings without the MTD loss, as the generator would lack a strong reconstruction gradient to counterbalance an increasingly confident discriminator.
 
 Crucially, combining both objectives at $\lambda_{TD}=15$ and a modest codec weight ($\lambda_{EMGCodec}=1$) yields a favorable shift in this trade-off: WER improves to 12.50% while envelope cross-correlation remains virtually unchanged at 0.59 compared to the baseline STE-GAN’s 0.60. In the frequency domain, however, the enhancement is more substantial: a coherence of 0.11 is achieved, against 0.30 from the original model (the second worst performance). Thus, the proposed auxiliary codec loss, when coupled with the MTD constraint, enhances downstream speech recognition performance without the compromise in signal reconstruction that previously accompanied WER gains.
+
+Lastly, the implementation of NeuroRVQ with sampling during inference shall be discussed. This foundational model, albeit powerful in diverse classification tasks, introduces a significant training overhead (up to 10x the original training time). The sampling proposed was able to reduce this time multiplier by up to 80% whilst maintaining the same performance (in relation to the original combination) in signal fidelity metrics, such as Env CC and coherence. Nonetheless, its quality dropped across Downstream Utility metrics, with WER and CER increasing to 17.70% and 9.15%, respectively.
 
 ## Conclusion
 
