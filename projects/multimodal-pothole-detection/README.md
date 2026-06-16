@@ -569,6 +569,13 @@ The following augmentations are applied to the image only, leaving the point clo
 | Motion blur | Simulates blur from camera movement or vibration |
 | Cutout | Random rectangular masking to improve robustness to partial occlusion |
 
+<p align="center">
+  <img src="reports/figures/example_different_types_augmentation.png" width="90%">
+</p>
+<p align="center">
+  <b>Fig.</b> Side-by-side comparison of all augmentation types applied to the same pothole sample. Each transform is shown independently so its visual effect is unambiguous.
+</p>
+
 ### 7.3 Config-Driven Pipeline
 
 The augmentation pipeline is fully config-driven and opt-in. Only transforms explicitly listed in the training configuration are applied. An empty configuration means samples pass through unchanged, which was intentional: it allows comparing augmented and unaugmented runs without any code changes.
