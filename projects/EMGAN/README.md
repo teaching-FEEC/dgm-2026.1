@@ -160,10 +160,23 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 
 <br>
 
-| ↓ SU L1 | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| ↓ SU L2 | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
 | :--- | :---: | :---: | :---: | :---: |
 | $\lambda\_{TD}=0$ | 1,48 | 7,89 | 6,20 | 4,39 |
 | $\lambda\_{TD}=15$ | 1,81 | 1,79 | 1,85 | 6,76 |
+
+<br>
+
+| ↓ COHERENCE | $\lambda\_{EMGCodec}=0$ | $\lambda\_{EMGCodec}=1$ | $\lambda\_{EMGCodec}=7$ | $\lambda\_{EMGCodec}=15$ |
+| :--- | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=0$ | 0.12 | 0.45 | 0.24 | 0.24 |
+| $\lambda\_{TD}=15$ | 0.30 | 0.11 | 0.18 | 0.24 |
+
+<br>
+
+| With sampling | ↓ WER | ↓ CER | ↑ Env CC | ↓ SU L1 | ↓ COHERENCE |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| $\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$ | 17.70% | 9.15% | 0.59 | 1.85 | 0,11 |
 
 ### Audio samples
 
