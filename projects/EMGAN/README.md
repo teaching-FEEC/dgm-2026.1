@@ -61,7 +61,7 @@ The framework is implemented in Python, leveraging PyTorch for deep learning mod
 
 ### Datasets and Evolution
 
-Following a dataset curation process that evaluated multiple available corpora, the open-source surface electromyography (sEMG) and speech dataset introduced by Gaddy and Klein (2020) was selected. This choice ensures consistency with the baseline STE-GAN framework while utilizing a standard benchmark that contains parallel recordings of audio and multi-channel sEMG from open and silent speech production. Detailed insights into the curation process and specific dataset characteristics are provided bellow.
+Following a dataset curation process that evaluated multiple available corpora, the open-source surface electromyography (sEMG) and speech dataset introduced by Gaddy and Klein (2020) was selected. This choice ensures consistency with the baseline STE-GAN framework while utilizing a standard benchmark that contains parallel recordings of audio and multi-channel sEMG from open and silent speech production. Detailed insights into the curation process and specific dataset characteristics are provided below.
 
 | Dataset | Web Address | Subjects | Total Duration | Sample Length | EMG Sampling Rate | Audio Sampling Rate | # Electrodes | Modalities | Availability | Extra Info |
 |--------|-------------|----------|----------------|---------------|-------------------|---------------------|--------------|------------|--------------|------------|
@@ -121,7 +121,11 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 
 ### Workflow
 
-![Project Workflow](images/workflow.svg?sanitize=true)
+Below, the project's workflow is shown as a general guideline to facilitate reproducibility.
+
+<div align="center">
+  <img src="images/workflow.svg" width="45%" />
+</div>
 
 ## Experiments, Results, and Discussion of Results
 
