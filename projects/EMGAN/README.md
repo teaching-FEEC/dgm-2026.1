@@ -119,7 +119,7 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 
 ### Workflow
 
-![Project Workflow](images/workflow.svg)
+![Project Workflow](images/workflow.svg?sanitize=true)
 
 ## Experiments, Results, and Discussion of Results
 
