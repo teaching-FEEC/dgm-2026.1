@@ -52,7 +52,7 @@ Especially, another training setup was also proposed for the $[\lambda\_{TD} = 1
 
 ### Evaluation Methodology
 To verify whether the primary objective of enhancing STE-GAN's generative quality and data augmentation utility is achieved, the synthesized signals are evaluated across three dimensions based on the protocol by Scheck and Schultz (2023):
-1. **Signal Fidelity:** Measured via the cross-correlation and the spectrogram L2 distance (coherence) between the real and generated sEMG envelopes.
+1. **Signal Fidelity:** Measured via the cross-correlation and the spectrogram L2 distance (coherence) between the real and generated sEMG envelopes. The bandwidth used in the calculation of coherence ranged from 20 to 250 Hz which typically concentrates the dominant power of an EMG. 
 2. **Content Preservation:** Assessed through Phoneme Accuracy and Soft Speech Units Distance extracted from the generated signals.
 3. **Downstream Utility:** Evaluated using the Word Error Rate (WER) of a downstream speech recognition system trained on the augmented synthetic data. A lower WER directly indicates successful data augmentation.
 
@@ -124,7 +124,7 @@ The chosen dataset is comprised of audio and EMG files of one subject, with 8 mo
 Below, the project's workflow is shown as a general guideline to facilitate reproducibility.
 
 <div align="center">
-  <img src="images/workflow.svg" width="45%" />
+  <img src="images/workflow.svg" width="100%" />
 </div>
 
 ## Experiments, Results, and Discussion of Results
@@ -182,7 +182,7 @@ Below, the project's workflow is shown as a general guideline to facilitate repr
 
 | With sampling | ↓ WER | ↓ CER | ↑ Env CC | ↓ SU L1 | ↓ COHERENCE |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| $\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$ | 17.70% | 9.15% | 0.59 | 1.85 | 0,11 |
+| $\lambda\_{TD}=15$, $\lambda\_{EMGCodec}=1$ | 17.70% | 9.15% | 0.59 | 1.85 | 0.11 |
 
 ### Audio samples
 
@@ -200,13 +200,13 @@ Below, the project's workflow is shown as a general guideline to facilitate repr
 
 ### Discussion
 
-The ablation study reveals a nuanced interplay between the MTD loss and the proposed EMG Codec loss. Training with the EMG Codec loss as the sole reconstruction objective ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=1$) resulted in severe mode collapse and unusable outputs, as evidenced by the near-chance WER and the audio samples. Even at higher codec weights ($\lambda_{EMGCodec}=15$) in the absence of MTD, the generator remained unstable, yielding a WER of 66.67% and an envelope cross-correlation of only 0.50, confirming that the discrete codec-matching term alone cannot ensure signal fidelity.
+The ablation study reveals a nuanced interplay between the MTD loss and the proposed EMG Codec loss. Training with the EMG Codec loss as the sole reconstruction objective ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=1$) resulted in severe mode collapse and unusable outputs, as evidenced by the near-chance WER and the audio samples. Even at higher codec weights ($\lambda_{EMGCodec}=15$), in the absence of MTD the generator remained unstable, yielding a WER of 66.67%, an envelope cross-correlation of only 0.50 and a high coherence of 0.24, confirming that the discrete codec-matching term alone cannot ensure signal fidelity.
 
-Consistent with the original STE-GAN findings, we replicated the trade-off wherein omitting the MTD loss ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=0$) lowers WER (11.11%) but substantially degrades envelope cross-correlation (0.48), while full STE-GAN ($\lambda_{TD}=15$, $\lambda_{EMGCodec}=0$) achieves higher reconstruction fidelity (0.60) at the cost of increased WER (13.96%).
+Consistent with the original STE-GAN findings, the trade-off wherein omitting the MTD loss ($\lambda_{TD}=0$, $\lambda_{EMGCodec}=0$) lowers WER (11.11%) but substantially degrades envelope cross-correlation (0.48) was replicated, while full STE-GAN ($\lambda_{TD}=15$, $\lambda_{EMGCodec}=0$) achieves higher reconstruction fidelity (CC = 0.60) at the cost of increased WER (13.96%).
 
 Notably, the discriminator loss curves indicate that higher weights assigned to the EMG Codec loss consistently enabled the discriminator to attain lower loss values. Although this observation is not conclusive, it suggests that the codec-matching objective may weaken the generator's adversarial feedback, making real and generated samples more easily separable. This dynamic could partly explain the instability encountered in settings without the MTD loss, as the generator would lack a strong reconstruction gradient to counterbalance an increasingly confident discriminator.
 
-Crucially, combining both objectives at $\lambda_{TD}=15$ and a modest codec weight ($\lambda_{EMGCodec}=1$) yields a favorable shift in this trade-off: WER improves to 12.50% while envelope cross-correlation remains virtually unchanged at 0.59 compared to the baseline STE-GAN’s 0.60. Thus, the proposed auxiliary codec loss, when coupled with the MTD constraint, enhances downstream speech recognition performance without the compromise in signal reconstruction that previously accompanied WER gains.
+Crucially, combining both objectives at $\lambda_{TD}=15$ and a modest codec weight ($\lambda_{EMGCodec}=1$) yields a favorable shift in this trade-off: WER improves to 12.50% while envelope cross-correlation remains virtually unchanged at 0.59 compared to the baseline STE-GAN’s 0.60. In the frequency domain, however, the enhancement is more substantial: a coherence of 0.11 is achieved, against 0.30 from the original model (the second worst performance). Thus, the proposed auxiliary codec loss, when coupled with the MTD constraint, enhances downstream speech recognition performance without the compromise in signal reconstruction that previously accompanied WER gains.
 
 ## Conclusion
 
