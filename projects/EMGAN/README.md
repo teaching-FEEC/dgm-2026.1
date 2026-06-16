@@ -1,3 +1,6 @@
+# Um Codec de Biossinais Sabe Mais? Fala para EMG por Meio de Redes Adversariais
+
+--- 
 # Does a Biosignal Codec Know Better? Speech-to-EMG via Adversarial Networks
 
 ## Presentation
