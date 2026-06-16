@@ -48,8 +48,8 @@ GEN_COLOR   = "#d7191c"
 HEAT_COLOR  = "#4dac26"
 MASK_COLOR  = "#9c27b0"
 
-COL_TITLES = ["Input (Real)", "Generated", "Change Heatmap (full image)", "Lung Mask"]
-COL_COLORS = [INPUT_COLOR, GEN_COLOR, HEAT_COLOR, MASK_COLOR]
+COL_TITLES = ["Input (Real)", "Generated", "Change Heatmap (full image)"]
+COL_COLORS = [INPUT_COLOR, GEN_COLOR, HEAT_COLOR]
 ROW_LABELS = [
     ("Healthy\n→ Pneumonia", INPUT_COLOR),
     ("Pneumonia\n→ Healthy",  GEN_COLOR),
@@ -123,7 +123,7 @@ def render_batch(h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
         (p_imgs, gen_H, p_masks),
     ]
 
-    n_img_cols = 4 * n
+    n_img_cols = 3 * n
     fig = plt.figure(figsize=(3.0 * n_img_cols + 0.6, 3.0 * 2 + 1.4))
     gs  = GridSpec(
         nrows=2, ncols=n_img_cols + 1,
@@ -140,31 +140,26 @@ def render_batch(h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
 
     for i in range(n):
         for k, (title, color) in enumerate(zip(COL_TITLES, COL_COLORS)):
-            axes[0, 4 * i + k].set_title(
+            axes[0, 3 * i + k].set_title(
                 title, fontsize=8, fontweight="bold", color=color, pad=5
             )
 
-    for r, (real_batch, gen_batch, mask_batch) in enumerate(row_data):
+    for r, (real_batch, gen_batch, _) in enumerate(row_data):
         for i in range(n):
             real_np = to_gray(real_batch[i].cpu())
             gen_np  = to_gray(gen_batch[i].cpu())
-            mask_np = mask_batch[i].cpu().squeeze(0).numpy()
 
-            # Heatmap over full image — zeros outside lung are expected
-            heat_np   = make_heatmap_overlay_full(
+            heat_np = make_heatmap_overlay_full(
                 real_np, gen_np, args.colormap, args.overlay_alpha, args.blur_sigma
             )
-            mask_disp = np.stack([mask_np, mask_np, mask_np], axis=-1)
 
-            axes[r, 4 * i    ].imshow(real_np,   cmap="gray", vmin=0, vmax=1)
-            axes[r, 4 * i + 1].imshow(gen_np,    cmap="gray", vmin=0, vmax=1)
-            axes[r, 4 * i + 2].imshow(heat_np)
-            axes[r, 4 * i + 3].imshow(mask_disp, cmap="gray", vmin=0, vmax=1)
+            axes[r, 3 * i    ].imshow(real_np, cmap="gray", vmin=0, vmax=1)
+            axes[r, 3 * i + 1].imshow(gen_np,  cmap="gray", vmin=0, vmax=1)
+            axes[r, 3 * i + 2].imshow(heat_np)
 
-            style_axis(axes[r, 4 * i    ], INPUT_COLOR)
-            style_axis(axes[r, 4 * i + 1], GEN_COLOR)
-            style_axis(axes[r, 4 * i + 2], HEAT_COLOR)
-            style_axis(axes[r, 4 * i + 3], MASK_COLOR)
+            style_axis(axes[r, 3 * i    ], INPUT_COLOR)
+            style_axis(axes[r, 3 * i + 1], GEN_COLOR)
+            style_axis(axes[r, 3 * i + 2], HEAT_COLOR)
 
         axes[r, 0].set_ylabel(
             ROW_LABELS[r][0], fontsize=10, fontweight="bold",
@@ -184,7 +179,6 @@ def render_batch(h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
         mpatches.Patch(color=INPUT_COLOR, label="Input (Real)"),
         mpatches.Patch(color=GEN_COLOR,   label="Generated (hard mask applied)"),
         mpatches.Patch(color=HEAT_COLOR,  label=f"Full-image heatmap — 0 outside lung (α={args.overlay_alpha})"),
-        mpatches.Patch(color=MASK_COLOR,  label="Lung Mask"),
     ]
     fig.legend(handles=patches, loc="upper right", fontsize=8,
                framealpha=0.9, bbox_to_anchor=(0.95, 0.97))
