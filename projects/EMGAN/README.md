@@ -1,6 +1,4 @@
-# Fala-para-EMG usando Redes Adversariais: A distância entre Codecs de EMG pode ajudar?
-
-# Speech-to-EMG via Adversarial Networks: Can EMG Codec Distance Help?
+# Does a Biosignal Codec Know Better? Speech-to-EMG via Adversarial Networks
 
 ## Presentation
 
