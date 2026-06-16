@@ -155,14 +155,26 @@ The frequency branch consists of two stages: a deterministic feature extractor w
 
 ### Feature Extraction
 
-Generative architectures such as GANs and diffusion models introduce systematic artifacts during upsampling operations that, while often imperceptible in the spatial domain, manifest as distinctive patterns in the frequency spectrum [1, 5]. The 2D Discrete Fourier Transform (DFT) decomposes an image into its constituent spatial frequencies, making these artifacts explicit and amenable to automated analysis. This theoretical motivation underlies the choice of frequency-domain features as a complementary signal to the semantic features captured by CLIP-ViT.
-
-The frequency extractor applies the 2D DFT independently to each color channel and centers the zero-frequency component via spectral shifting. Two operating modes are supported, each trained and evaluated independently as a separate model configuration. The magnitude mode computes the log-magnitude spectrum $\log(1 + |F(u,v)|)$, where the logarithmic scaling compresses the dynamic range so that both low-frequency structural information and high-frequency generative artifacts are represented within the same feature space. The phase mode computes the phase angle of $F(u,v)$, capturing structural and edge information that complements the energy distribution encoded by the magnitude. In both modes, the resulting spectrum is spatially pooled to a fixed grid and flattened into a 3,072-dimensional feature vector (3 channels $\times$ 32 $\times$ 32), which serves as input to the projection network. Figure 4 compares the log-magnitude FFT spectra of a real and a synthetic face image from the FakeClue dataset. While the spectra may appear similar to human inspection, the subtle distributional differences, particularly in the high-frequency components, encode discriminative information that the projection network learns to exploit during training.
+The Fourier Transform decomposes an image into its constituent spatial frequencies, representing how rapidly pixel values change across the image. Low spatial frequencies correspond to smooth regions and overall structure, while high spatial frequencies encode edges, fine textures, and detail. The 2D FFT computes this decomposition efficiently for digital images, producing a frequency spectrum where the center represents low frequencies and the periphery represents high frequencies, as illustrated in Figure 4. Generative models introduce systematic artifacts during synthesis (upsampling in GANs, iterative denoising in diffusion models) that leave patterns in the frequency spectrum not typically found in real photographs [1, 5], making the frequency domain a valuable source of complementary features for detection.
 
 <p align="center">
-  <img src="images/fft_comparison.png" width="400"/>
+  <img src="images/fft_didactic.png" width="700"/>
   <br>
-  <em>Figure 4: Log-magnitude FFT spectra of a real (top) and a synthetic (bottom) face image from FakeClue.</em>
+  <em>Figure 4: Spatial domain vs. frequency domain. The 2D FFT transforms an image into its frequency spectrum, where the center encodes low-frequency structure and the periphery encodes high-frequency detail. Generative artifacts typically appear as anomalous patterns in the high-frequency region.</em>
+</p>
+
+The frequency extractor applies the 2D FFT independently to each color channel and centers the zero-frequency component via spectral shifting. Two operating modes are supported, each trained and evaluated independently as a separate model configuration. The magnitude mode computes the log-magnitude spectrum $\log(1 + |F(u,v)|)$, where the logarithmic scaling compresses the dynamic range so that both low-frequency structural information and high-frequency generative artifacts are represented within the same feature space. The phase mode computes the phase angle of $F(u,v)$, capturing structural and edge information that complements the energy distribution encoded by the magnitude. In both modes, the resulting spectrum is spatially pooled to a fixed grid and flattened into a 3,072-dimensional feature vector (3 channels $\times$ 32 $\times$ 32), which serves as input to the projection network. Figure 5 compares the log-magnitude FFT spectra of a real and a synthetic face image from the FakeClue dataset. While the spectra may appear similar to human inspection, the subtle distributional differences, particularly in the high-frequency components, encode discriminative information that the projection network learns to exploit during training. Figure 6 shows the corresponding phase spectra for the same image pair.
+
+<p align="center">
+  <img src="images/fft_magnitude_comparison.png" width="500"/>
+  <br>
+  <em>Figure 5: Log-magnitude FFT spectra (RGB composite) of a real (top) and a synthetic (bottom) face image from FakeClue.</em>
+</p>
+
+<p align="center">
+  <img src="images/fft_phase_comparison.png" width="500"/>
+  <br>
+  <em>Figure 6: Phase FFT spectra (RGB composite) of a real (top) and a synthetic (bottom) face image from FakeClue.</em>
 </p>
 
 ### Training
@@ -202,7 +214,7 @@ The evaluation compares three model configurations. The baseline is the original
 
 ### Results
 
-Both FFT magnitude and FFT phase models were trained following the two-stage procedure described in the Training section. Figure 5 presents the training loss curves for all four training runs. In both modes, Stage 1 converges rapidly within a single epoch as the frequency projector learns to map spectral features into the language model's embedding space. Stage 2 exhibits the expected slower convergence over three epochs as the LoRA adapters and the frequency projector are jointly optimized.
+Both FFT magnitude and FFT phase models were trained following the two-stage procedure described in the Training section. Figure 7 presents the training loss curves for all four training runs. In both modes, Stage 1 converges rapidly within a single epoch as the frequency projector learns to map spectral features into the language model's embedding space. Stage 2 exhibits the expected slower convergence over three epochs as the LoRA adapters and the frequency projector are jointly optimized.
 
 <p align="center">
   <img src="images/loss_stage1_magnitude.png" width="400">
@@ -212,7 +224,7 @@ Both FFT magnitude and FFT phase models were trained following the two-stage pro
   <img src="images/loss_stage1_phase.png" width="400">
   <img src="images/loss_stage2_phase.png" width="400">
 </p>
-<p align="center"><em>Figure 5. Training loss curves. Top row: FFT magnitude (Stage 1, Stage 2). Bottom row: FFT phase (Stage 1, Stage 2).</em></p>
+<p align="center"><em>Figure 7. Training loss curves. Top row: FFT magnitude (Stage 1, Stage 2). Bottom row: FFT phase (Stage 1, Stage 2).</em></p>
 
 The table below summarizes the evaluation results for the baseline and the two extended model configurations, using the metrics described in the Evaluation Methodology section.
 
@@ -234,13 +246,13 @@ The two FFT extraction modes yield remarkably similar results across all four me
 
 To disentangle the contribution of the frequency branch from the effect of LoRA fine-tuning, we trained two ablation configurations on the original FakeClue labels (without frequency augmentation) using the same hyperparameters as Stage 2 of the extended training procedure. The first configuration applies LoRA [9] to Vicuna's linear layers only, matching the fine-tuning scope of the extended models but without the frequency feature branch. The second configuration additionally unfreezes the CLIP projection MLP (the two-layer network between CLIP-ViT and Vicuna), testing whether adapting this projector provides further benefit. Neither configuration includes the frequency feature branch or the augmented training labels.
 
-Figure 6 presents the training loss curves for both ablation configurations. Both runs converge smoothly over three epochs, exhibiting loss trajectories comparable to Stage 2 of the extended models.
+Figure 8 presents the training loss curves for both ablation configurations. Both runs converge smoothly over three epochs, exhibiting loss trajectories comparable to Stage 2 of the extended models.
 
 <p align="center">
   <img src="images/loss_ablation_lora_vicuna.png" width="400">
   <img src="images/loss_ablation_lora_vicuna_projector.png" width="400">
 </p>
-<p align="center"><em>Figure 6. Training loss curves for the ablation configurations. Left: LoRA on Vicuna only. Right: LoRA on Vicuna with CLIP projector.</em></p>
+<p align="center"><em>Figure 8. Training loss curves for the ablation configurations. Left: LoRA on Vicuna only. Right: LoRA on Vicuna with CLIP projector.</em></p>
 
 The table below presents the full comparison across all five model configurations.
 
@@ -281,19 +293,19 @@ The human category presents an unexpected pattern: the baseline produces zero mi
 
 The FFT magnitude model achieves the fewest errors in the animal category (2 vs. 7 baseline), where frequency-domain classifiers showed strong augmentation coverage (75.7%, as reported in the Frequency-Domain Label Augmentation section). However, it produces the most scene errors among the fine-tuned models (8 vs. 5 baseline), despite scene having 61.6% augmentation coverage. The 10 unrecognized responses from the magnitude model (all on chameleon-generated images) contribute to its elevated error counts in the human, object, and scene categories, indicating that the magnitude branch occasionally disrupts the model's ability to produce well-formed classification responses.
 
-Figure 7 decomposes the errors into false positives (real images classified as fake), false negatives (fake images classified as real), and unrecognized responses (where the model output did not contain a clear classification). False positives dominate across all models, accounting for 0.60% to 0.94% of the test set. Fine-tuning reduces the false positive rate from the baseline's 0.78% to 0.60% to 0.62% for FFT phase, FFT magnitude, and LoRA Vicuna, but LoRA Vicuna with projector increases it to 0.94%, the highest among all configurations. False negatives show a larger relative reduction: the baseline's 0.46% drops to 0.26% for FFT magnitude and 0.34% for LoRA Vicuna, suggesting that fine-tuning improves the detection of fake images more than it improves the correct acceptance of real images. The FFT magnitude model is the only configuration with a substantial unrecognized rate (0.20%, corresponding to 10 chameleon images), while FFT phase has a single unrecognized response.
+Figure 9 decomposes the errors into false positives (real images classified as fake), false negatives (fake images classified as real), and unrecognized responses (where the model output did not contain a clear classification). False positives dominate across all models, accounting for 0.60% to 0.94% of the test set. Fine-tuning reduces the false positive rate from the baseline's 0.78% to 0.60% to 0.62% for FFT phase, FFT magnitude, and LoRA Vicuna, but LoRA Vicuna with projector increases it to 0.94%, the highest among all configurations. False negatives show a larger relative reduction: the baseline's 0.46% drops to 0.26% for FFT magnitude and 0.34% for LoRA Vicuna, suggesting that fine-tuning improves the detection of fake images more than it improves the correct acceptance of real images. The FFT magnitude model is the only configuration with a substantial unrecognized rate (0.20%, corresponding to 10 chameleon images), while FFT phase has a single unrecognized response.
 
 <p align="center">
   <img src="images/error_rates.png" alt="Error rates by model and type" width="800"/>
 </p>
-<p align="center"><em>Figure 7. Error rate decomposition by model. False positives (real classified as fake) dominate across all configurations. FFT magnitude is the only model with a substantial unrecognized rate (0.20%, 10 chameleon images).</em></p>
+<p align="center"><em>Figure 9. Error rate decomposition by model. False positives (real classified as fake) dominate across all configurations. FFT magnitude is the only model with a substantial unrecognized rate (0.20%, 10 chameleon images).</em></p>
 
-Figure 8 examines the distribution of errors by source dataset. FaceForensics++ (ff++) is the largest error source across all models, contributing 48% to 69% of the total. GenImage is the second-largest source (28% to 38%), while document errors remain stable at two to three per model. Chameleon errors appear exclusively in the FFT magnitude model (10 unrecognized responses, representing 19% of its errors), confirming that the magnitude branch has a specific failure mode on this generative method. The recurrent error analysis reveals that 21 false positives and 10 false negatives are shared across all five models, indicating a core set of 31 images that are inherently difficult for this architecture regardless of training configuration.
+Figure 10 examines the distribution of errors by source dataset. FaceForensics++ (ff++) is the largest error source across all models, contributing 48% to 69% of the total. GenImage is the second-largest source (28% to 38%), while document errors remain stable at two to three per model. Chameleon errors appear exclusively in the FFT magnitude model (10 unrecognized responses, representing 19% of its errors), confirming that the magnitude branch has a specific failure mode on this generative method. The recurrent error analysis reveals that 21 false positives and 10 false negatives are shared across all five models, indicating a core set of 31 images that are inherently difficult for this architecture regardless of training configuration.
 
 <p align="center">
   <img src="images/dataset_error_rates.png" alt="Error distribution by source dataset" width="800"/>
 </p>
-<p align="center"><em>Figure 8. Error distribution by source dataset. Left: percentage share of errors per dataset. Right: absolute error counts. FaceForensics++ dominates errors across all models, while chameleon errors appear exclusively in the FFT magnitude model.</em></p>
+<p align="center"><em>Figure 10. Error distribution by source dataset. Left: percentage share of errors per dataset. Right: absolute error counts. FaceForensics++ dominates errors across all models, while chameleon errors appear exclusively in the FFT magnitude model.</em></p>
 
 ### Discussion
 
