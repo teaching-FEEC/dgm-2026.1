@@ -133,7 +133,7 @@ PothRGDB is a paired RGB and depth dataset of potholes, captured with an Intel R
 
 The dataset contains **998 sample entries** in the manifest. After integrity checking, 996 are valid. The batch EDA pipeline processed 992 of those successfully; 4 failed due to empty masks or unstable road-surface estimation.
 
-**6.3.1.1 Dataset Collection Setup**
+#### 6.3.1.2 Dataset Collection Setup
 
 A portable system was meticulously designed to collect depth and RGB image data of potholes from various road surfaces. The system's architecture emphasizes mobility and efficiency, comprising key components integrated for seamless data acquisition [1]. 
 
@@ -145,14 +145,14 @@ A portable system was meticulously designed to collect depth and RGB image data 
   <b>Fig. 1.</b> Schematic diagram of the pothole data collection system.
 </p>
 
-**6.3.1.1 Key Components:**
+#### 6.3.1.3 Key Components:
 
 *   **LattePanda 3 Delta Computer:** Chosen for its compact structure, powerful processor, and extensive connectivity, providing a suitable platform for portable systems [1].
 *   **Intel RealSense D415 Depth Camera:** Selected for its capability to capture high-resolution RGB images and precise depth maps, essential for accurate pothole dimension measurement [1].
 *   **Touchscreen:** Offers instant user feedback, simplifying data viewing and management during collection [1].
 *   **Powerbank:** Ensures uninterrupted power supply, enabling prolonged mobile data collection sessions [1].
 
-#### 6.3.1.1 Dataset Characteristics: RGB, Depth, and Segmentation Masks
+#### 6.3.1.4 Dataset Characteristics: RGB, Depth, and Segmentation Masks
 
 PothRGDB is a paired RGB and depth dataset of potholes, captured using the Intel RealSense D415 active stereo depth camera. Each sample within the dataset provides [1]:
 
@@ -179,7 +179,7 @@ PothRGDB is a paired RGB and depth dataset of potholes, captured using the Intel
 </p>
 
 
-#### 6.3.1.1 Data Processing and Quality Control
+#### 6.3.1.5 Data Processing and Quality Control
 
 The dataset underwent a rigorous processing and quality control workflow to ensure data integrity and reliability. This multi-stage process involved initial integrity checks, batch EDA, outlier detection, and a final manual review [1].
 
@@ -202,14 +202,14 @@ graph LR
     end
 ```
 
-**6.3.1.1 Workflow Details:**
+**6.3.1.6 Workflow Details:**
 
 *   **Integrity Check:** Initial validation of the 1000 collected samples, resulting in 996 valid entries.
 *   **Batch EDA Pipeline:** Processed 992 valid samples, with 4 failures attributed to empty masks or unstable road-surface estimation.
 *   **Outlier Detection:** Performed on log-transformed values (IQR on log-volume and log-depth) to identify physically implausible samples. This step prevented the incorrect discarding of genuinely large potholes [1]. A total of 29 samples were flagged due to sensor failures, such as depths exceeding 5,000 mm or volumes over 1,000,000 cm³ [1].
 *   **Manual Review:** A final review of prepared 3D point clouds ensured the quality and accuracy of the dataset.
 
-#### 6.3.1.1 Key EDA Metrics
+#### 6.3.1.6 Key EDA Metrics
 
 Exploratory Data Analysis revealed critical insights into the characteristics of the potholes within the dataset. The volume and depth distributions exhibited a heavy-tailed, approximately log-normal shape [1].
 
@@ -220,11 +220,11 @@ Exploratory Data Analysis revealed critical insights into the characteristics of
 | Mask fraction             | 0.209   | 0.501           |
 | Missing depth fraction    | -       | 1.67%           |
 
-#### 6.3.1.1 Final Dataset Size
+#### 6.3.1.7 Final Dataset Size
 
 After comprehensive filtering and manual review, the **final training set of PothRGDB contains 975 samples**. This refined dataset provides a robust foundation for training and evaluating models for pothole detection and 3D measurement.
 
-#### 6.3.1.1 Calibration Limitations
+#### 6.3.1.8 Calibration Limitations
 
 Converting a depth map into a 3D point cloud requires **camera intrinsic parameters**: the focal lengths (how much the lens magnifies the scene) and the principal point (the pixel coordinates of the optical center). Together, these four numbers define the mapping from a pixel location and its measured depth to a real-world 3D coordinate; without them, the reconstructed geometry can be systematically scaled or skewed.
 
@@ -232,9 +232,9 @@ PothRGDB does not provide per-device intrinsics. Because the dataset was collect
 
 In practice this means: relative comparisons between samples are meaningful, but the absolute numbers should be interpreted as estimates, not ground-truth measurements. This limitation is explicitly acknowledged throughout the evaluation, and all severity thresholds were chosen to be well-separated enough that small calibration errors do not move samples across bin boundaries.
 
-## 6.3.2. Rui Fan Stereo Pothole Dataset: Held-Out Evaluation Benchmark
+### 6.3.2. Rui Fan Stereo Pothole Dataset: Held-Out Evaluation Benchmark
 
-### 6.3.2.1. Authorship and Affiliations
+#### 6.3.2.1. Authorship and Affiliations
 This repository contains one of the first multi-modal pothole datasets specifically designed for both 3D pothole reconstruction and pothole detection using stereo vision. It was introduced in the paper:
 •  Rui Fan (A tenured professor at Tongji University, China, known for his work in computer vision, deep learning, and autonomous systems).
 • Umar Ozgunalp (Department of Electrical and Electronics Engineering, Near East University (Cyprus))
@@ -243,7 +243,7 @@ This repository contains one of the first multi-modal pothole datasets specifica
 • Ioannis Pitas (Professor at Aristotle University of Thessaloniki and Centre for Research and Technology Hellas)
 
 
-### 6.3.2.1. The Dataset Contain
+#### 6.3.2.1. The Dataset Contain
 The repository provides two datasets:
 
 
@@ -261,7 +261,7 @@ This allows researchers to compare classical computer vision methods with newer 
 • Transformed disparity maps
 • Pixel-level pothole annotations
 • Detection benchmark results
-### 6.3.2.1. Where the Data was Obtained
+#### 6.3.2.1. Where the Data was Obtained
 This dataset was created through a combination of methods:
 #### Step 1: Real Road Data Collection
 The researchers captured stereo road images using a stereo camera system mounted on a vehicle. The stereo setup produced:
@@ -355,15 +355,15 @@ graph LR
         style Stage2 fill:none,stroke:#333333,stroke-width:1px,stroke-dasharray: 4 4
 ```
 
-## 6.4. Exploratory Data Analysis
+### 6.4. Exploratory Data Analysis
 
-### 6.4.1 Dataset Inventory and Integrity
+#### 6.4.1 Dataset Inventory and Integrity
 
 The EDA pipeline began with a structural inventory: loading the manifest, counting paired files, checking mask completeness, and identifying duplicate sample IDs.
 
 Two samples were flagged as duplicates, each having two sets of images, depths, and labels. These were noted for review but retained in the general statistics, since the root cause was a dataset collection artifact.
 
-### 6.4.1 Geometric Metric Extraction
+#### 6.4.2 Geometric Metric Extraction
 
 For each valid sample the pipeline:
 
@@ -375,13 +375,13 @@ For each valid sample the pipeline:
 
 The road-surface estimation uses a flat-plane approximation (median of surrounding ring), not a full RANSAC plane fit. This is a deliberate simplification acceptable for the EDA phase; the actual training preprocessing uses RANSAC-based geometric leveling (see Section 5).
 
-### 6.4.1 Outlier Handling
+#### 6.4.3 Outlier Handling
 
 The initial version of the EDA applied IQR-based outlier detection on raw linear values. This was updated to apply IQR on log-transformed values (`np.log1p`) after observing that the distribution is log-normal. The updated approach correctly preserves genuinely large potholes while flagging the implausible sensor artifacts.
 
 The 29 flagged samples are excluded from training via the quality gate in the preprocessing pipeline.
 
-### 6.4.1 Missing Depth Analysis
+#### 6.4.4 Missing Depth Analysis
 
 The missing depth fraction, the proportion of masked pothole pixels with zero depth reading, was added as an explicit EDA metric: mean 1.67% across the dataset. While small on average, individual samples show much higher rates. Visual inspection of the top outliers confirmed that the failure modes are systematic (water, shadows, occlusion) rather than random sensor noise. This finding is used as a direct justification for the generative approach: the model must infer geometry where the sensor is structurally blind.
 
@@ -398,9 +398,9 @@ The images below illustrate two of the most common failure modes observed in Pot
 
 ---
 
-## 6.5. Data Preparation and Preprocessing
+### 6.5. Data Preparation and Preprocessing
 
-### 6.5.1 Overview
+#### 6.5.1 Overview
 
 A **point cloud** is a set of 3D points, where each point has a position in space (X, Y, Z coordinates) and, in our case, also carries the color of the corresponding pixel from the original RGB image (R, G, B values). The result is a 6-dimensional representation per point that encodes both geometry and appearance. This format is what Point-E natively produces and expects as training targets.
 
@@ -431,7 +431,7 @@ The preprocessing pipeline converts the raw PothRGDB samples (RGB images, depth 
 
 The output of the pipeline is a prepared dataset directory containing the square RGB crops, the normalized point cloud tensors, depth heatmaps for visual inspection, and a metadata file with the per-sample scale factor needed to recover physical dimensions.
 
-### 6.5.1 Square Crop and Padding
+#### 6.5.2 Square Crop and Padding
 
 Point-E's CLIP image encoder requires a square input. Stretching or cropping the pothole region would distort the geometric proportions the model needs to learn.
 
@@ -462,7 +462,7 @@ This strategy was chosen because both extremes are problematic: purely zero-padd
   <b>Fig.</b> Comparison of padding strategies: original, black padding, reflect-101, replicate, and inpaint Telea. The hybrid system selects between reflect and inpaint depending on how much of the border falls outside the image.
 </p>
 
-### 6.5.1 Geometric Leveling with RANSAC
+#### 6.5.3 Geometric Leveling with RANSAC
 
 Depth maps encode the raw distance from the camera to each pixel, not the depth of the pothole relative to the road surface. A camera mounted at an angle introduces a systematic tilt: even a flat road has a depth gradient across the frame.
 
@@ -484,7 +484,7 @@ RANSAC is used specifically because a simple mean or median of the surrounding r
   <b>Left:</b> Raw point cloud before leveling. The camera tilt makes the road appear as a ramp, distorting the apparent depth of the cavity. <b>Right:</b> After RANSAC plane subtraction, the road surface is flat at Z=0 and the cavity depth is isolated cleanly.
 </p>
 
-### 6.5.1 Point Cloud Normalization
+#### 6.5.4 Point Cloud Normalization
 
 Point-E expects point clouds bounded in a [-1, 1] cube. The leveled pothole cloud is normalized globally:
 
@@ -494,7 +494,7 @@ Point-E expects point clouds bounded in a [-1, 1] cube. The leveled pothole clou
 
 The scale factor is critical for severity assessment: after inference, multiplying the generated point cloud by the scale factor and dividing by 1000 converts it to meters, from which effective depth in cm can be computed.
 
-### 6.5.1 Fixed Point Count (FPS and Random Upsampling)
+#### 6.5.5 Fixed Point Count (FPS and Random Upsampling)
 
 Point-E requires exactly 1024 points. The raw leveled point cloud may contain anywhere from a few hundred to tens of thousands of points depending on the mask size and depth coverage.
 
@@ -503,7 +503,7 @@ Point-E requires exactly 1024 points. The raw leveled point cloud may contain an
 
 Random upsampling is a known limitation: small potholes may have repeated points in the training target, which slightly inflates apparent point density for those samples.
 
-### 6.5.1 Manual Quality Review
+#### 6.5.6 Manual Quality Review
 
 After generating the full prepared dataset, a manual quality review removed samples with clearly degenerate point clouds (flat or collapsed structures, obviously wrong scale, or sensor failures that survived the automated outlier filter). The final training set after this review contains **975 samples**.
 
@@ -516,7 +516,7 @@ To assist this review, a depth heatmap visualization was built for each sample, 
   <b>Fig.</b> Depth heatmap used during manual review. Samples with collapsed, inverted, or extreme distributions were removed before training.
 </p>
 
-### 6.5.1 Rui Fan Benchmark Preparation
+#### 6.5.7 Rui Fan Benchmark Preparation
 
 The Rui Fan evaluation set is prepared by a dedicated benchmark preparation step, completely separate from the training pipeline:
 
@@ -529,9 +529,9 @@ The Rui Fan prepared set is kept completely separate from the training data and 
 
 ---
 
-## 6.6. Model: Point-E Fine-Tuning
+### 6.6. Model: Point-E Fine-Tuning
 
-### 6.6.1 Architecture Overview
+#### 6.6.1 Architecture Overview
 
 > *Note: A full theoretical description of Point-E and the underlying diffusion framework is provided in a separate section authored by a project co-author. This section focuses only on the adaptation and fine-tuning decisions.*
 
@@ -539,7 +539,7 @@ Point-E is an open-source model released by OpenAI, and this project uses the of
 
 Point-E offers models of different sizes (approximately 40 million, 300 million, and 1 billion parameters). This project uses the smallest variant, the base40M model, which generates 1024 points directly conditioned on a single square RGB image. The choice of the 40M model was driven by the available hardware (16 GB GPU memory) and the time constraints of the project: running four sequential fine-tuning phases totaling roughly 2000 epochs would be infeasible with larger models within the available time. An optional upsampler can refine the output to a higher point count, but it is not used in this project.
 
-### 6.6.1 Training Inputs and Targets
+#### 6.6.2 Training Inputs and Targets
 
 Each training sample is a pair:
 
@@ -550,15 +550,15 @@ The model is trained using the native Point-E diffusion loss, which measures the
 
 ---
 
-## 6.7. Data Augmentation
+### 6.7. Data Augmentation
 
 Augmentation is applied only to the 2D image inputs. The 3D point cloud targets are never augmented independently, because decoupled augmentation would break the image-to-cloud pairing.
 
-### 6.7.1 Geometric Augmentations
+#### 6.7.1 Geometric Augmentations
 
 Only one geometric augmentation is applied: **horizontal flip**. When the image is horizontally flipped, the point cloud X coordinate is negated by the same amount. This ensures the image-cloud pair remains geometrically consistent. The correctness of this paired behavior was validated visually during prototyping.
 
-### 6.7.1 Pixel-Only Augmentations
+#### 6.7.2 Pixel-Only Augmentations
 
 The following augmentations are applied to the image only, leaving the point cloud unchanged:
 
@@ -577,21 +577,21 @@ The following augmentations are applied to the image only, leaving the point clo
   <b>Fig.</b> Side-by-side comparison of all augmentation types applied to the same pothole sample. Each transform is shown independently so its visual effect is unambiguous.
 </p>
 
-### 6.7.1 Config-Driven Pipeline
+#### 6.7.3 Config-Driven Pipeline
 
 The augmentation pipeline is fully config-driven and opt-in. Only transforms explicitly listed in the training configuration are applied. An empty configuration means samples pass through unchanged, which was intentional: it allows comparing augmented and unaugmented runs without any code changes.
 
 Validation never receives augmentation. The validation set is always evaluated on clean, unmodified samples.
 
-### 6.7.1 Augmentation Logging
+#### 6.7.4 Augmentation Logging
 
 Each augmented sample is recorded in a per-run JSONL augmentation log, tracking which transforms were applied to which sample ID in which epoch. A per-epoch terminal summary shows per-transform counts. This makes the augmentation history fully auditable.
 
 ---
 
-## 6.8. Training System
+### 6.8. Training System
 
-### 6.8.1. Entry Point and Configuration
+#### 6.8.1. Entry Point and Configuration
 
 The training pipeline is orchestrated by a single entry point that:
 
@@ -604,15 +604,15 @@ The training pipeline is orchestrated by a single entry point that:
 7. Runs the training loop.
 8. Writes a final run metadata summary after training completes.
 
-### 6.8.1. Optimizer and Mixed Precision
+#### 6.8.2. Optimizer and Mixed Precision
 
 The optimizer is **AdamW**, applied only to the model parameters that require gradient updates. Mixed precision training is enabled to reduce GPU memory usage and increase throughput without significant loss of gradient stability. Gradient clipping is available as a configurable option.
 
-### 6.8.1. Learning Rate Scheduling
+#### 6.8.3. Learning Rate Scheduling
 
 Cosine annealing scheduling was introduced in Runs 3 and 4. The scheduler reduces the learning rate from the initial value to `eta_min` following a cosine curve over the total number of epochs.
 
-### 6.8.1. Sequential Training Runs
+#### 6.8.4. Sequential Training Runs
 
 The best model was produced through four sequential fine-tuning runs. Each run resumed from the best checkpoint of the previous one.
 
@@ -627,7 +627,7 @@ Each augmentation transform has an independent application probability per sampl
 
 The progressive decrease in best validation loss across all four runs reflects the benefit of sequential fine-tuning combined with refined augmentation policies and cosine scheduling.
 
-### 6.8.1. Visual Training Progression
+#### 6.8.5. Visual Training Progression
 
 The following animations show output clouds for the same input image at each training milestone, illustrating how the model's understanding evolves.
 
@@ -695,47 +695,47 @@ With the best checkpoint, varying the guidance scale reveals how strongly the mo
 
 ---
 
-## 6.9. Reproducibility
+### 6.9. Reproducibility
 
 Reproducibility was treated as a first-class requirement. Every training run produces a complete and self-contained audit trail.
 
-### 6.9.1. Timestamped Run Directories
+#### 6.9.1. Timestamped Run Directories
 
 Each run writes to a dedicated timestamped directory (e.g., `artifacts/runs/20260601_142315/`). All outputs are isolated within this directory; multiple runs never overwrite each other.
 
-### 6.9.2. Resolved Config Snapshot
+#### 6.9.2. Resolved Config Snapshot
 
 Before training begins, the fully resolved configuration is saved alongside the run artifacts. The exact hyperparameters that produced any checkpoint are always co-located with that checkpoint.
 
-### 6.9.3. Run Metadata Summary
+#### 6.9.3. Run Metadata Summary
 
 A final JSON metadata file is written after training completes, capturing: run timestamp, artifact paths, base model, resumed-from path, start and end epoch, best epoch, best validation metric, elapsed time, learning rate, train and validation set sizes, and validation interval.
 
-### 6.9.4. Augmentation and Validation Logs
+#### 6.9.4. Augmentation and Validation Logs
 
 Augmentation records are stored as JSONL under the run root (one record per augmented sample, per epoch). Validation results are stored as a separate JSONL log, capturing epoch, val loss, Chamfer Distance (if computed), and best-checkpoint events.
 
-### 6.9.5. Seed and Determinism
+#### 6.9.5. Seed and Determinism
 
 When a seed is provided in the configuration, all random number generators are seeded and deterministic GPU operation is enforced. This does not guarantee bit-identical results across different hardware, but makes runs on the same machine reproducible.
 
-### 6.9.6. Checkpoint Format
+#### 6.9.6. Checkpoint Format
 
 Each checkpoint stores the complete training state: the model weights, the optimizer state, the mixed-precision scaler state, the learning rate scheduler state, the best validation metric seen so far, and the epoch at which that best was achieved. Resuming from a checkpoint restores all of these, so training continues from exactly where it was interrupted without resetting the best-metric baseline.
 
 ---
 
-## 10. Validation and Best Checkpoint Selection
+### 6.10. Validation and Best Checkpoint Selection
 
-### 10.1 Validation Split
+#### 6.10.1 Validation Split
 
 The split is defined by an explicit list of reserved sample identifiers in the training configuration. **50 samples** were reserved for validation across all runs. The training set is built from all remaining samples.
 
-### 10.2 Validation Cadence and Pass
+#### 6.10.2 Validation Cadence and Pass
 
 Validation runs at the end of each epoch by default, though the interval is configurable. The pass iterates over the full validation set with the model in evaluation mode and without gradient computation, accumulating mean validation loss.
 
-### 10.3 Best Checkpoint Criterion
+#### 6.10.3 Best Checkpoint Criterion
 
 The monitored metric defaults to validation loss. When a strict improvement is observed, the best checkpoint is saved and the best-epoch number is updated. This best value is persisted inside the checkpoint file so that resuming a run does not reset the selection threshold.
 
@@ -743,9 +743,9 @@ Chamfer Distance can be configured as the monitored metric instead. If Chamfer c
 
 ---
 
-## 11. Inference and Final Evaluation
+### 6.11. Inference and Final Evaluation
 
-### 11.1 Inference Pipeline
+#### 6.11.1 Inference Pipeline
 
 For final-test inference, the model is loaded from the best training checkpoint and run on each image in the prepared benchmark set. The pipeline:
 
@@ -754,14 +754,14 @@ For final-test inference, the model is loaded from the best training checkpoint 
 3. Recovers physical scale by multiplying the normalized output by the stored scale factor and converting to meters.
 4. Saves one predicted point cloud per sample. Already-completed samples are skipped, making the run resumable.
 
-### 11.2 Evaluation Pipeline
+#### 6.11.2 Evaluation Pipeline
 
 The evaluation step matches each prediction against the prepared ground-truth cloud by sample identifier and writes:
 
 - A per-sample report with the geometric fidelity score (Chamfer Distance), predicted and ground-truth effective depth in cm, depth error, expected and predicted severity bins, and whether the bin matched.
 - An aggregate summary with mean Chamfer Distance, mean depth error, severity match rate, and a 3×3 severity confusion matrix.
 
-### 11.3 Depth Convention and Scale Alignment
+#### 6.11.3 Depth Convention and Scale Alignment
 
 One non-trivial aspect of the evaluation is that the ground-truth clouds and the model predictions use different depth conventions internally. During data preparation, the pothole cavity is encoded with depth growing in the positive direction, essentially treating the cavity as a hill rather than a hole, because this representation was more stable for training. The severity evaluation, however, measures depth as the downward extension of the cavity, which requires the opposite sign.
 
@@ -769,7 +769,7 @@ Before any metric is computed, the ground-truth clouds are flipped to match the 
 
 For effective depth, the evaluation uses the 5th percentile of the deepest points rather than the absolute minimum. This choice is deliberate: generative models occasionally produce stray points far above or below the main structure. Using the minimum would make the depth estimate highly sensitive to these outliers, while the 5th percentile provides a stable and representative measure of how deep the cavity actually is.
 
-### 11.4 Severity Classification
+#### 6.11.4 Severity Classification
 
 Effective depth is mapped to three engineering bins:
 
@@ -781,7 +781,7 @@ Effective depth is mapped to three engineering bins:
 
 A severity match is recorded when predicted and ground-truth bins are equal.
 
-## 12 Final Evaluation Results
+## 7. Final Evaluation Results
 
 The best checkpoint (Run 4, epoch 590, val loss 0.1957) was evaluated on the 27 prepared Rui Fan samples:
 
@@ -804,7 +804,7 @@ All 27 benchmark samples fall in the low-severity bin. The model classified all 
 
 **Important caveat:** the benchmark's gypsum molds are relatively shallow by design, so the result only exercises the low-severity bin. The medium and high bins have zero ground-truth samples. This result cannot be extrapolated to assert correct behavior on deeper potholes, and the severity match rate of 1.0 reflects this narrow coverage, not general system robustness.
 
-### 11.6 Validation Set Results and Depth Accuracy Discussion
+### 7.1. Validation Set Results and Depth Accuracy Discussion
 
 Beyond the held-out test benchmark, the model was also evaluated on the 50-sample validation set drawn from PothRGDB. The results reveal an important nuance about the system's capabilities.
 
@@ -845,7 +845,7 @@ These three examples come from the same physical pothole (model3) photographed f
   <b>Fig.</b> Three different viewpoints of the same Rui Fan pothole produce three visibly different predicted shapes, highlighting generalization challenges on data from a different source domain.
 </p>
 
-### 11.7 Inference Latency
+### 7.2 Inference Latency
 
 Inference latency was measured on 100 samples using the best checkpoint on the same GPU used for training (NVIDIA GeForce RTX 5070 Ti).
 
@@ -865,35 +865,35 @@ At roughly 3 seconds per image on a high-end consumer GPU, the system is not sui
 
 ## 8. Limitations and Open Points
 
-### 12.1 Calibration Uncertainty
+### 8.1 Calibration Uncertainty
 
 Absolute depth values depend on camera intrinsics not provided by PothRGDB. The approximate D415 intrinsics may introduce a systematic scale offset. Relative severity ranking is more reliable than absolute geometric precision.
 
-### 12.2 Benchmark Coverage
+### 8.2 Benchmark Coverage
 
 The Rui Fan benchmark contains only 27 samples across 3 physical pothole molds, all in the low-severity bin. The model's behavior on medium and high severity potholes is not validated by these results.
 
-### 12.3 Upsampler Not Used
+### 8.3 Upsampler Not Used
 
 The Point-E upsampler is not integrated. All results represent the base40M output only. Adding the upsampler may improve geometric fidelity but would require additional training and evaluation work.
 
-### 12.4 Scale Ambiguity
+### 8.4 Scale Ambiguity
 
 The generative model produces a normalized output without intrinsic scale. Scale is recovered from preprocessing metadata, which inherits the calibration uncertainty described above.
 
-### 12.5 Random Upsampling for Small Clouds
+### 8.5 Random Upsampling for Small Clouds
 
 Samples with fewer than 1024 valid depth points are upsampled by random resampling with replacement. This may cause the model to overfit to repeated points in small-pothole training samples.
 
-### 12.6 Training Distribution
+### 8.6 Training Distribution
 
 PothRGDB was collected in a limited geographic context with a single camera model. Generalization to potholes with different aspect ratios, pavement types, or illumination conditions beyond the training distribution is not guaranteed.
 
-### 12.7 Severity Coverage in Validation
+### 8.7 Severity Coverage in Validation
 
 The validation set used during training contains very few samples outside the low-severity bin, as observed in the evaluation results. This means the model was validated almost entirely on low-severity cases, and the val loss metric used for checkpoint selection does not reflect performance on medium or high severity potholes. A proper evaluation of the system across all severity levels would require a more balanced held-out set.
 
-## Future Work
+## 9. Future Work
 
 If we had another month, the priorities would be:
 
@@ -904,6 +904,10 @@ Second: explore augmentation with image synthesis of holes with artificially add
 Third: improve the diversity of the validation and test set, including images from different geographic contexts and lighting conditions.
 
 Fourth: add energy consumption metrics per training session, so we can honestly report the computational cost in addition to the inference time.
+
+Fifth: Future studies should validate the estimated depth, area, and volume measurements against high-precision ground-truth data obtained from LiDAR scanners, laser profilers, or structured-light systems.
+
+Sixth: While this work focuses on geometric reconstruction and metric estimation, future research can extend the framework to automatically classify pothole severity levels based on the estimated depth, area, and volume. Such a system could support maintenance prioritization and assist transportation agencies in decision-making processes.
 
 
 
