@@ -48,7 +48,7 @@ where $P$ denotes the total number of patches, $N$ denotes the number of NeuroRV
 ### Experimental Design and Justification
 To systematically evaluate the impact of the proposed codec-matching objective on training stability and signal generation, we conduct a grid-search ablation study. Because both the MTD loss ($\mathcal{L}\_{TD}$) and the EMG Codec loss ($\mathcal{L}\_{EMGCodec}$) act as reconstruction fidelity constraints, operating in the continuous time domain and discrete latent space, respectively, we vary their weights to observe their interactions. The experimental grid evaluates all combinations of $\lambda\_{TD} \in \{0, 15\}$ and $\lambda\_{EMGCodec} \in \{0, 1, 7, 15\}$.
 
-Especially, another training setup was also proposed for the $\{\lambda\_{TD} = 15, \lambda\_{EMGCodec} = 1\}$ combination in which only 10% of the $P$ patches were used to backpropagate the EMGCodec Loss. This is a special case of interest since the EMGCodec's inference takes up most of the training time.
+Especially, another training setup was also proposed for the $[\lambda\_{TD} = 15, \lambda\_{EMGCodec} = 1]$ combination in which only 10% of the $P$ patches were used for inference and, thus, to backpropagate the EMGCodec Loss. This is a special case of interest since the EMGCodec's inference takes up most of the training time.
 
 ### Evaluation Methodology
 To verify whether the primary objective of enhancing STE-GAN's generative quality and data augmentation utility is achieved, the synthesized signals are evaluated across three dimensions based on the protocol by Scheck and Schultz (2023):
