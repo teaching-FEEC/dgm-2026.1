@@ -160,9 +160,13 @@ class NeuroRVQLoss(nn.Module):
         out_synth      = self.tokenizer.get_tokens(x_synth, self.temp_ix, self.spat_ix)
         quantize_synth = out_synth["quantize"]      # list of [B, (A*C), code_dim]
 
-        # Sum MSE across all RVQ scales
+        # Sum MSE across all RVQ scales (quantized vectors)
         loss = sum(
             F.mse_loss(q_s, q_r)
             for q_r, q_s in zip(quantize_real, quantize_synth)
         )
+
+        if False: # alternative loss - sum quantized vectors before calculating loss
+          loss = F.mse_loss(torch.stack(quantize_synth, dim=0).sum(dim=0), torch.stack(quantize_real, dim=0).sum(dim=0))
+      
         return loss
