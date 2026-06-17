@@ -279,6 +279,44 @@ Cycle consistency can help preserve anatomical structure while modifying disease
 - Works with unpaired data
 - Produces sharper and more realistic images
 
+#### 1.3 Lung-Guided Generation
+
+Both generative models (CVAE and CycleGAN) were trained with explicit guidance from anatomical lung masks produced by the TorchXRayVision PSPNet segmenter. The motivation is that pathological changes in pneumonia are concentrated in the lung fields: guiding the models toward this region reduces spurious modifications to the cardiac silhouette, ribs, and background, and makes the evaluation through difference heatmaps more interpretable.
+
+**Mask generation**
+
+For each chest X-ray in the dataset, a binary lung mask is generated offline by the method. The segmenter loads the pretrained PSPNet model from TorchXRayVision, runs inference on the grayscale image, takes the union of the left-lung and right-lung output channels, applies a sigmoid activation, and binarizes the result at a threshold of 0.5. The resulting mask has pixel value 1 inside the lung fields and 0 everywhere else. All masks are generated once before training and stored alongside the corresponding images, so that no segmentation inference is performed at training time.
+
+The figure below shows a healthy chest X-ray from the training set (left), its binary lung mask (centre), and an overlay that highlights the segmented lung region in blue (right).
+
+![Lung mask example](images/lung_mask_example.png)
+
+**How the mask is used in the CVAE**
+
+The CVAE receives the lung mask as a second input channel concatenated with the grayscale X-ray, so the encoder can observe the lung boundary while compressing the image into the latent space. During training, the mask also splits the reconstruction loss into three spatial components:
+
+- A lung reconstruction loss, computed only inside the mask, which encourages the model to faithfully reconstruct the clinically relevant region.
+- An outside-lung reconstruction loss, computed outside the mask, which penalises unnecessary changes to the background with a higher weight ($\lambda_{outside} = 3.0$).
+- A global reconstruction loss over the full image.
+
+This asymmetric weighting tells the CVAE to focus its generative capacity on the lung fields while strongly discouraging background alterations.
+
+**How the mask is used in the CycleGAN**
+
+The CycleGAN applies the mask as a hard spatial constraint at generation time: after each generator produces a translated image, the background pixels (mask = 0) are replaced directly by the corresponding pixels from the real input image. Only the lung region (mask = 1) is allowed to differ from the source image:
+
+$$
+\hat{x}_{cf} = G(x) \odot M + x \odot (1 - M)
+$$
+
+where $G(x)$ is the generator output, $M$ is the binary lung mask, and $\odot$ denotes element-wise multiplication.
+
+In addition, the cycle consistency loss and the identity loss are computed with region-specific weights: the inside-lung weight is $\lambda_{inside} = 1.0$ and the outside-lung weight is $\lambda_{outside} = 3.0$, strongly penalising any cycle-consistency error in the background.
+
+**Effect on counterfactual generation**
+
+The lung mask constraint limits the spatial extent of changes that either model can introduce, making the generated counterfactuals more anatomically plausible and easier to interpret through change heatmaps. Regions outside the lung fields remain close to the original image by construction, so observed differences between the input and the counterfactual are more likely to reflect disease-related modifications rather than stylistic or background artefacts.
+
 ### 2. Classification Models
 
 A classification model is a central component of this project, as it provides the basis for evaluating both data augmentation and explainability through counterfactuals.
@@ -629,7 +667,29 @@ The most notable behavior is the monotonic upward trend of the GAN loss througho
 
 The total generator loss combines the GAN term (weight 1), cycle consistency (λ_cycle = 10), and identity (λ_identity = 5) terms. The identity loss was included to preserve color and style consistency, but it may actually be hurting training: in early epochs, the cycle and identity terms dominate the gradient, giving the discriminators time to build a persistent advantage the generators never recover from. Future experiments will test reduced or removed identity weighting to check whether this improves adversarial balance.
 
+#### Mask-Guided CycleGAN (128 × 128, 6 residual blocks, lung mask)
+
+The mask-guided variant inherits the full baseline configuration and adds three changes:
+
+- **2-channel generator input**: the grayscale X-ray and the binary lung mask are concatenated along the channel dimension, so each generator receives spatial information about the lung boundary at every forward pass.
+- **Region-weighted losses**: the cycle consistency loss and identity loss are computed separately inside (`λ_inside = 1.0`) and outside (`λ_outside = 3.0`) the lung mask. The higher outside weight penalises unnecessary changes to the background more strongly than in the standard formulation.
+- **Hard masking at generation time**: after each generator produces an output, background pixels (mask = 0) are replaced directly by the corresponding real input pixels, ensuring that only the lung region can change between the original and the counterfactual.
+
+Training ran for 200 epochs with the same optimizer, learning rate, and replay-buffer setup as the baseline. Loss curves and progress images were saved to `mask/outputs/`.
+
+#### Training Loss Behavior (Mask-Guided)
+
+![CycleGAN Mask-Guided Training Loss Curves](models/CycleGAN/mask/outputs/losses/loss_curve.png)
+
+Training ran for 200 epochs on the NIH Chest X-ray training split. All losses are plotted on a logarithmic scale.
+
+The **generator total loss (G_loss)** started high (~20) due to the larger region-weighted terms and decreased continuously throughout training, reaching approximately 3.5 by epoch 200 — a more consistent downward trend than observed in the baseline. The **cycle consistency loss** dropped from ~12 in the first epochs to ~1.8 at epoch 200, reflecting the larger absolute scale imposed by the region weighting (λ_outside = 3.0) relative to the unweighted baseline formulation. The **identity loss** decreased from ~7 to ~1.0, following the same downward pattern. The **discriminator losses (D_H, D_P)** decreased steadily from ~0.20 to ~0.09, indicating that discriminators improved progressively. The **GAN loss** increased from ~0.3 to ~0.8, replicating the same adversarial imbalance observed in the baseline: discriminators gain a persistent advantage that the generators do not fully recover from. The **validation cycle loss** tracks the training cycle loss closely, suggesting no overfitting to the training domain.
+
+Compared to the baseline, the total G_loss decreases monotonically instead of stabilising, which is a more favourable training dynamic. The underlying adversarial imbalance remains, but the region-weighted losses appear to provide a stronger and more consistent gradient signal throughout training.
+
 ### 3.3 Generation and Results
+
+#### Baseline CycleGAN
 
 #### Visual Quality of Generated Images
 
@@ -670,7 +730,64 @@ FID was evaluated on the test set using the checkpoint from epoch 200:
 | Pneumonia → Healthy (G_P2H)  | 109.58 |
 | **Mean FID**  | **115.34** |
 
-The FID scores are moderately high. The slightly better FID for the P→H direction may reflect that the healthy domain is larger and more varied, providing a richer target distribution. These scores serve as a baseline for comparison in future experiments.
+The FID scores are moderately high. The slightly better FID for the P→H direction may reflect that the healthy domain is larger and more varied, providing a richer target distribution. These scores serve as a baseline for comparison with the mask-guided variant below.
+
+---
+
+#### Mask-Guided CycleGAN
+
+**Counterfactual image generation examples**
+
+![CycleGAN Mask-Guided Generation Examples](models/CycleGAN/mask/outputs/img_generation/generation_examples_mask.png)
+
+The figure above shows 4 example triplets for each translation direction, randomly sampled from the test set. Blue borders denote real (input) images; red borders denote generated (output) images; green borders show the lung mask overlay on the input image.
+
+The generated images preserve the chest background perfectly by construction: the hard masking step copies all non-lung pixels directly from the input. Changes are strictly confined to the segmented lung fields, which remain visually coherent chest X-rays. The mask overlay (third column of each triplet) confirms that the segmented region covers both lung lobes and leaves the cardiac silhouette, ribs, and diaphragm untouched.
+
+---
+
+**Counterfactual change heatmaps**
+
+![CycleGAN Mask-Guided Change Heatmap](models/CycleGAN/mask/outputs/img_generation/change_heatmap_full_selected.png)
+
+The heatmaps visualise the absolute per-pixel difference between the real and generated images, overlaid on the real image. Brighter colours indicate larger pixel-level changes. The rightmost column shows the binary lung mask for spatial reference.
+
+In contrast to the baseline, the change activity is almost entirely confined to the lung mask region. Pixels outside the mask are unchanged by construction, so the heatmap highlights only lung-internal modifications. This spatial specificity makes the mask-guided counterfactuals easier to interpret: any observed difference between input and output can be attributed to the lung region rather than background artefacts.
+
+**Quantitative Evaluation**
+
+FID was evaluated on the test set using the checkpoint from epoch 200:
+
+| Translation | FID |
+|---|---|
+| Healthy → Pneumonia (G_H2P) | 112.30 |
+| Pneumonia → Healthy (G_P2H) | 107.81 |
+| **Mean FID** | **110.06** |
+
+SSIM was computed between each original image and its generated counterfactual:
+
+| Translation | Mean SSIM | Std | n |
+|---|---|---|---|
+| Healthy → Pneumonia (G_H2P) | 0.9804 | 0.0164 | 8,978 |
+| Pneumonia → Healthy (G_P2H) | 0.9810 | 0.0186 | 43 |
+
+The very high SSIM values (> 0.98) are expected: the hard mask copies the background unchanged, so only the lung region (~20–30% of pixels) can contribute to SSIM loss. These values are therefore not directly comparable to the baseline SSIM, which allowed the full image to change.
+
+---
+
+#### Comparison: Baseline vs Mask-Guided
+
+| Metric | Baseline | Mask-Guided | Δ |
+|---|---|---|---|
+| H→P FID ↓ | 121.09 | 112.30 | −8.79 |
+| P→H FID ↓ | 109.58 | 107.81 | −1.77 |
+| Mean FID ↓ | 115.34 | 110.06 | −5.28 |
+| H→P SSIM ↑ | 0.7791 | 0.9804 | +0.20 (†) |
+| P→H SSIM ↑ | 0.7528 | 0.9810 | +0.23 (†) |
+
+(†) SSIM values are not directly comparable: the baseline computes SSIM over the full image (all pixels free to change), while the mask-guided variant hard-copies the background, so SSIM only reflects differences in the lung region.
+
+The mask constraint improved FID in both directions without requiring architectural changes. The reduction is largest for H→P (−8.79 points), where the baseline struggled most, suggesting that constraining generation to the lung fields helps the model focus on disease-relevant texture differences. The improvement in P→H is more modest (−1.77), consistent with the smaller and more homogeneous pneumonia test set. The change heatmaps confirm qualitatively that the mask-guided model produces more localised and interpretable counterfactual modifications.
 
 ## Discussion
 
