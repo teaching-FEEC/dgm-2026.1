@@ -1,0 +1,9 @@
+{
+  "split": "train",
+  "threshold": 0.3414328098297119,
+  "n_pairs": 42436,
+  "n_flipped": 6230,
+  "flip_rate": 0.1468,
+  "delta_mean": 0.0465,
+  "delta_std": 0.0991
+}
