@@ -11,14 +11,18 @@ from torch.utils.data import Dataset
 class LazySupervisedDataset(Dataset):
     def __init__(
         self,
-        data_path: str,
+        data_path: Optional[str] = None,
+        data: Optional[List] = None,
         image_folder: Optional[str] = None,
         user_key: str = "human",
         assistant_key: str = "gpt",
     ) -> None:
         super().__init__()
-        with open(data_path, "r") as f:
-            self.list_data_dict = json.load(f)
+        if data is not None:
+            self.list_data_dict = data
+        else:
+            with open(data_path, "r") as f:
+                self.list_data_dict = json.load(f)
         self.image_folder = image_folder
         self.user_key = user_key
         self.assistant_key = assistant_key

@@ -1,0 +1,27 @@
+torchrun --nproc_per_node=1 -m FakeVLM.train \
+    --model_hf_path llava-hf/llava-1.5-7b-hf \
+    --model_local_path ../models/FakeVLM \
+    --data_path ../data/external/FakeClue/data_json/train.json \
+    --image_folder ../data/external/FakeClue/train \
+    --output_dir ../models/FakeVLM/lora_vicuna_projector \
+    --bf16 True \
+    --num_train_epochs 3 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 4 \
+    --gradient_checkpointing True \
+    --learning_rate 2e-5 \
+    --warmup_steps 558 \
+    --weight_decay 0.0 \
+    --lr_scheduler_type cosine \
+    --eval_split_ratio 0.05 \
+    --eval_strategy steps \
+    --eval_steps 1000 \
+    --logging_steps 50 \
+    --save_strategy steps \
+    --save_steps 1000 \
+    --save_total_limit 3 \
+    --report_to none \
+    --use_lora True \
+    --train_projector True \
+    --dataloader_num_workers 4 \
+    --deepspeed FakeVLM/ds_configs/zero2.json | tee ../models/FakeVLM/lora_vicuna_projector/training.log

@@ -1,3 +1,4 @@
+import json
 import os
 os.environ["WANDB_PROJECT"] = "fakevlm-extended"
 
@@ -108,6 +109,7 @@ def train():
         freq_args.freq_extractor_name,
         input_size=freq_args.freq_input_size,
         pool_size=freq_args.freq_pool_size,
+        mode=freq_args.fft_mode,
     )
 
     llm_hidden_size = config.text_config.hidden_size
@@ -188,21 +190,37 @@ def train():
 
     # --- Data ---
     rank0_print("Loading data...")
-    train_dataset = LazySupervisedDataset(
-        data_path=data_args.data_path,
+    dataset_kwargs = dict(
         image_folder=data_args.image_folder,
         user_key=data_args.user_key,
         assistant_key=data_args.assistant_key,
     )
     eval_dataset = None
+
     if data_args.eval_data_path:
-        eval_dataset = LazySupervisedDataset(
-            data_path=data_args.eval_data_path,
-            image_folder=data_args.image_folder,
-            user_key=data_args.user_key,
-            assistant_key=data_args.assistant_key,
+        train_dataset = LazySupervisedDataset(
+            data_path=data_args.data_path, **dataset_kwargs
         )
+        eval_dataset = LazySupervisedDataset(
+            data_path=data_args.eval_data_path, **dataset_kwargs
+        )
+    elif data_args.eval_split_ratio > 0:
+        with open(data_args.data_path) as f:
+            all_data = json.load(f)
+        n_eval = int(len(all_data) * data_args.eval_split_ratio)
+        gen = torch.Generator().manual_seed(42)
+        indices = torch.randperm(len(all_data), generator=gen).tolist()
+        eval_data = [all_data[i] for i in indices[:n_eval]]
+        train_data = [all_data[i] for i in indices[n_eval:]]
+        rank0_print(f"Split: {len(train_data)} train, {len(eval_data)} eval")
+        train_dataset = LazySupervisedDataset(data=train_data, **dataset_kwargs)
+        eval_dataset = LazySupervisedDataset(data=eval_data, **dataset_kwargs)
     else:
+        train_dataset = LazySupervisedDataset(
+            data_path=data_args.data_path, **dataset_kwargs
+        )
+
+    if eval_dataset is None:
         training_args.eval_strategy = "no"
 
     data_collator = ExtendedLlavaCollator(

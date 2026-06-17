@@ -33,6 +33,10 @@ class DataArguments:
     image_folder: Optional[str] = field(default=None)
     user_key: Optional[str] = field(default="human")
     assistant_key: Optional[str] = field(default="gpt")
+    eval_split_ratio: float = field(
+        default=0.0,
+        metadata={"help": "Fraction of training data to hold out for eval (ignored if eval_data_path is set)."},
+    )
 
 
 @dataclass
@@ -64,6 +68,10 @@ class FreqArguments:
     )
     freq_input_size: int = field(default=224)
     freq_pool_size: int = field(default=32)
+    fft_mode: str = field(
+        default="magnitude",
+        metadata={"help": "FFT mode for FFTExtractor - 'magnitude' or 'phase'"}
+    )
     num_freq_tokens: int = field(default=1)
     freq_projector_hidden_dim: Optional[int] = field(
         default=None,
