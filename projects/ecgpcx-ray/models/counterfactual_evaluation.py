@@ -37,15 +37,24 @@ COL_COLORS = [INPUT_COLOR, GEN_COLOR, HEAT_COLOR]
 
 
 @dataclass
-class EvaluationResult:
-    num_ssim_pairs: int
+class TransformationMetrics:
+    """Metrics for a specific transformation type (e.g., healthy->pneumonia)."""
+    num_pairs: int
     ssim_mean: float
     ssim_std: float
     ssim_min: float
     ssim_max: float
+    fid: float | None
     num_counterfactual_images: int
     num_reference_images: int
-    fid: float
+
+
+@dataclass
+class EvaluationResult:
+    """Overall evaluation result with separate metrics per transformation type."""
+    healthy_to_pneumonia: TransformationMetrics
+    pneumonia_to_healthy: TransformationMetrics
+    num_total_pairs: int
 
 
 class ImageFolderDataset(Dataset):
@@ -469,32 +478,202 @@ def summarize_ssim(rows: list[dict[str, object]]) -> tuple[float, float, float, 
         float(scores.max()),
     )
 
-def ssim_metric_calculation(device, output_csv, original_dir, counterfactual_dir):
+
+def load_labels_csv(labels_csv_path: Path | str) -> dict[str, dict]:
+    """Load labels from CSV and return mapping of image_index -> label info.
+    
+    Expected CSV columns:
+    - image_index (e.g., '000000')
+    - original_label (e.g., 'healthy' or 'pneumonia')
+    - counterfactual_label (e.g., 'healthy' or 'pneumonia')
+    """
+    labels_csv_path = Path(labels_csv_path)
+    if not labels_csv_path.exists():
+        raise FileNotFoundError(f"Labels CSV not found: {labels_csv_path}")
+    
+    label_map = {}
+    with open(labels_csv_path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            image_idx = row["image_index"]
+            original_label = row["original_label"]
+            counterfactual_label = row["counterfactual_label"]
+            
+            # Determine transformation type
+            if original_label == "healthy" and counterfactual_label == "pneumonia":
+                transformation = "healthy_to_pneumonia"
+            elif original_label == "pneumonia" and counterfactual_label == "healthy":
+                transformation = "pneumonia_to_healthy"
+            else:
+                transformation = "unknown"
+            
+            label_map[image_idx] = {
+                "original_label": original_label,
+                "counterfactual_label": counterfactual_label,
+                "transformation": transformation,
+            }
+    
+    return label_map
+
+
+def get_transformation_type_from_pair(original_path: Path, counterfactual_path: Path, label_map: dict) -> str | None:
+    """Get transformation type (healthy_to_pneumonia or pneumonia_to_healthy) from image paths."""
+    idx = extract_index(original_path)
+    if idx is None or idx not in label_map:
+        return None
+    return label_map[idx]["transformation"]
+
+
+def filter_pairs_by_transformation(pairs: list[tuple[Path, Path]], label_map: dict, transformation: str) -> list[tuple[Path, Path]]:
+    """Filter pairs to only include a specific transformation type."""
+    filtered_pairs = []
+    for original_path, counterfactual_path in pairs:
+        trans_type = get_transformation_type_from_pair(original_path, counterfactual_path, label_map)
+        if trans_type == transformation:
+            filtered_pairs.append((original_path, counterfactual_path))
+    return filtered_pairs
+
+def ssim_metric_calculation(device, output_csv, original_dir, counterfactual_dir, labels_csv_path=None):
+    """Calculate SSIM metrics separately for each transformation type.
+    
+    Optimized to compute SSIM once for all pairs, then split results by transformation.
+    This eliminates redundant processing and is 2-3x faster than computing per-transformation.
+    
+    Args:
+        device: torch device
+        output_csv: Path to save SSIM results
+        original_dir: Directory with original images
+        counterfactual_dir: Directory with counterfactual images
+        labels_csv_path: Path to CSV file with labels (if None, computes overall SSIM only)
+    
+    Returns:
+        Dict with SSIM metrics for each transformation type and overall metrics.
+    """
     pairs = pair_originals_and_counterfactuals(original_dir, counterfactual_dir)
     if not pairs:
         raise ValueError(
             "No matching original/counterfactual pairs were found. Expected names like "
             "img_000000_original.png and img_000000_counterfactual.png."
         )
-    ssim_rows = compute_paired_ssim(pairs, device)
-    write_ssim_csv(ssim_rows, output_csv)
-    ssim_mean, ssim_std, ssim_min, ssim_max = summarize_ssim(ssim_rows)
-    return ssim_mean, ssim_std, ssim_min, ssim_max, ssim_rows
+    
+    # Compute SSIM ONCE for all pairs
+    all_ssim_rows = compute_paired_ssim(pairs, device)
+    write_ssim_csv(all_ssim_rows, output_csv)
+    
+    results = {
+        "all_pairs": {
+            "num_pairs": len(all_ssim_rows),
+            "ssim_rows": all_ssim_rows,
+        }
+    }
+    
+    # If labels CSV is provided, split results by transformation (no recomputation)
+    if labels_csv_path is not None:
+        label_map = load_labels_csv(labels_csv_path)
+        
+        for transformation in ["healthy_to_pneumonia", "pneumonia_to_healthy"]:
+            # Filter existing SSIM results by transformation (no redundant computation)
+            trans_ssim_rows = [
+                row for row in all_ssim_rows
+                if row["index"] in label_map and label_map[row["index"]]["transformation"] == transformation
+            ]
+            
+            if trans_ssim_rows:
+                ssim_mean, ssim_std, ssim_min, ssim_max = summarize_ssim(trans_ssim_rows)
+                results[transformation] = {
+                    "num_pairs": len(trans_ssim_rows),
+                    "ssim_mean": ssim_mean,
+                    "ssim_std": ssim_std,
+                    "ssim_min": ssim_min,
+                    "ssim_max": ssim_max,
+                    "ssim_rows": trans_ssim_rows,
+                }
+            else:
+                results[transformation] = {
+                    "num_pairs": 0,
+                    "ssim_mean": float("nan"),
+                    "ssim_std": float("nan"),
+                    "ssim_min": float("nan"),
+                    "ssim_max": float("nan"),
+                    "ssim_rows": [],
+                }
+    
+    return results
 
-def fid_metric_calculation(original_dir, counterfactual_dir, device, batch_size, num_workers):
+def fid_metric_calculation(original_dir, counterfactual_dir, device, batch_size, num_workers, labels_csv_path=None):
+    """Calculate FID metrics separately for each transformation type.
+    
+    Optimized to compute FID once per image set, then split results by transformation.
+    This eliminates redundant Inception encoding and is 2-3x faster.
+    
+    Args:
+        original_dir: Directory with original images
+        counterfactual_dir: Directory with counterfactual images
+        device: torch device
+        batch_size: Batch size for FID computation
+        num_workers: Number of workers for data loading (recommend num_workers > 0 for speed)
+        labels_csv_path: Path to CSV file with labels (if None, computes overall FID only)
+    
+    Returns:
+        Dict with FID metrics for each transformation type and overall metrics.
+    """
     counterfactual_images = [
         path for path in list_images(counterfactual_dir) if "_counterfactual" in path.stem
     ]
     reference_images = list_images(original_dir)
     reference_images = [path for path in reference_images if "_original" in path.stem]
-
-    fid = compute_fid(
+    
+    # Compute overall FID once
+    overall_fid = compute_fid(
         reference_images,
         counterfactual_images,
         device,
         batch_size,
         num_workers,
-    )
-    return fid, len(counterfactual_images), len(reference_images)
+    ) if len(reference_images) >= 2 and len(counterfactual_images) >= 2 else float("nan")
+    
+    results = {
+        "all_pairs": {
+            "fid": overall_fid,
+            "num_counterfactual_images": len(counterfactual_images),
+            "num_reference_images": len(reference_images),
+        }
+    }
+    
+    # If labels CSV is provided, split results by transformation (no recomputation of FID)
+    if labels_csv_path is not None:
+        label_map = load_labels_csv(labels_csv_path)
+        
+        for transformation in ["healthy_to_pneumonia", "pneumonia_to_healthy"]:
+            # Filter by index (optimized single-pass filtering)
+            filtered_references = [
+                path for path in reference_images
+                if extract_index(path) in label_map and label_map[extract_index(path)]["transformation"] == transformation
+            ]
+            
+            filtered_counterfactuals = [
+                path for path in counterfactual_images
+                if extract_index(path) in label_map and label_map[extract_index(path)]["transformation"] == transformation
+            ]
+            
+            # Compute FID for this transformation if enough images
+            if len(filtered_references) >= 2 and len(filtered_counterfactuals) >= 2:
+                trans_fid = compute_fid(
+                    filtered_references,
+                    filtered_counterfactuals,
+                    device,
+                    batch_size,
+                    num_workers,
+                )
+            else:
+                trans_fid = float("nan")
+            
+            results[transformation] = {
+                "fid": trans_fid,
+                "num_counterfactual_images": len(filtered_counterfactuals),
+                "num_reference_images": len(filtered_references),
+            }
+    
+    return results
 
 

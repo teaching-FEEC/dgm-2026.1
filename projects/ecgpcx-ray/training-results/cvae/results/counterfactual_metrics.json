@@ -1,10 +1,23 @@
 {
-  "num_ssim_pairs": 9021,
-  "ssim_mean": 0.9945196944387297,
-  "ssim_std": 0.003479860138518946,
-  "ssim_min": 0.8794103860855103,
-  "ssim_max": 0.9974129796028137,
-  "num_counterfactual_images": 9021,
-  "num_reference_images": 9021,
-  "fid": 2.879544734954834
+  "healthy_to_pneumonia": {
+    "num_pairs": 8978,
+    "ssim_mean": 0.9945205040367336,
+    "ssim_std": 0.0034825362846800114,
+    "ssim_min": 0.8794103860855103,
+    "ssim_max": 0.9974129796028137,
+    "fid": 2.883856773376465,
+    "num_counterfactual_images": 8978,
+    "num_reference_images": 8978
+  },
+  "pneumonia_to_healthy": {
+    "num_pairs": 43,
+    "ssim_mean": 0.9943506579066432,
+    "ssim_std": 0.0028958419916469626,
+    "ssim_min": 0.9820452928543091,
+    "ssim_max": 0.9973947405815125,
+    "fid": 15.604942321777344,
+    "num_counterfactual_images": 43,
+    "num_reference_images": 43
+  },
+  "num_total_pairs": 9021
 }
