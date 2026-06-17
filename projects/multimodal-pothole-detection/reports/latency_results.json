@@ -1,0 +1,422 @@
+{
+  "checkpoint": "artifacts\\run_2026-06-11T13-58-47\\checkpoints\\checkpoint_best.pt",
+  "images_dir": "data\\latency_test",
+  "limit": 100,
+  "device": "cuda",
+  "base_model": "base40M",
+  "skipped_no_scale": 0,
+  "stats": {
+    "n_samples": 100,
+    "mean_s": 3.017960912997369,
+    "median_s": 3.0110716499912087,
+    "stdev_s": 0.0751844988952719,
+    "min_s": 2.9307605999638326,
+    "max_s": 3.5397356000030413,
+    "p95_s": 3.1098629999905825,
+    "p99_s": 3.1783687000279315,
+    "total_s": 301.7960912997369
+  },
+  "per_sample": [
+    {
+      "sample_id": "20250227_135438",
+      "inference_time_s": 3.5397356000030413
+    },
+    {
+      "sample_id": "20250227_135652",
+      "inference_time_s": 2.949311600008514
+    },
+    {
+      "sample_id": "20250227_140407",
+      "inference_time_s": 3.057037800026592
+    },
+    {
+      "sample_id": "20250227_140905",
+      "inference_time_s": 2.9877954000257887
+    },
+    {
+      "sample_id": "20250227_141050",
+      "inference_time_s": 2.9686856999760494
+    },
+    {
+      "sample_id": "20250227_141418",
+      "inference_time_s": 3.0595873999991454
+    },
+    {
+      "sample_id": "20250227_141738",
+      "inference_time_s": 2.963299700000789
+    },
+    {
+      "sample_id": "20250227_142113",
+      "inference_time_s": 3.0076646999805234
+    },
+    {
+      "sample_id": "20250227_142636",
+      "inference_time_s": 2.992610000015702
+    },
+    {
+      "sample_id": "20250227_142923",
+      "inference_time_s": 2.9426075000083074
+    },
+    {
+      "sample_id": "20250227_143049",
+      "inference_time_s": 3.0173478999640793
+    },
+    {
+      "sample_id": "20250227_143319",
+      "inference_time_s": 2.9584551999578252
+    },
+    {
+      "sample_id": "20250227_143331",
+      "inference_time_s": 2.9904489999753423
+    },
+    {
+      "sample_id": "20250227_151014",
+      "inference_time_s": 3.037466800014954
+    },
+    {
+      "sample_id": "20250227_152725",
+      "inference_time_s": 2.9472178000141867
+    },
+    {
+      "sample_id": "20250227_152914",
+      "inference_time_s": 3.023186899954453
+    },
+    {
+      "sample_id": "20250227_154005",
+      "inference_time_s": 2.9956283000065014
+    },
+    {
+      "sample_id": "20250227_154322",
+      "inference_time_s": 2.9681333000189625
+    },
+    {
+      "sample_id": "20250227_154522",
+      "inference_time_s": 3.0241292000282556
+    },
+    {
+      "sample_id": "20250227_155233",
+      "inference_time_s": 2.957565999997314
+    },
+    {
+      "sample_id": "20250227_155737",
+      "inference_time_s": 3.0030510000069626
+    },
+    {
+      "sample_id": "20250227_155838",
+      "inference_time_s": 3.0136632999638095
+    },
+    {
+      "sample_id": "20250227_172615",
+      "inference_time_s": 2.9564817000064068
+    },
+    {
+      "sample_id": "20250227_172620",
+      "inference_time_s": 3.050748499983456
+    },
+    {
+      "sample_id": "20250227_172623",
+      "inference_time_s": 2.971757500024978
+    },
+    {
+      "sample_id": "20250227_172633",
+      "inference_time_s": 2.9932230000267737
+    },
+    {
+      "sample_id": "20250227_172639",
+      "inference_time_s": 3.0516835000016727
+    },
+    {
+      "sample_id": "20250227_172731",
+      "inference_time_s": 2.9607574000256136
+    },
+    {
+      "sample_id": "20250227_172829",
+      "inference_time_s": 3.032461000024341
+    },
+    {
+      "sample_id": "20250227_172833",
+      "inference_time_s": 3.0206710000056773
+    },
+    {
+      "sample_id": "20250227_172837",
+      "inference_time_s": 2.97329609998269
+    },
+    {
+      "sample_id": "20250227_172840",
+      "inference_time_s": 3.0589261999703012
+    },
+    {
+      "sample_id": "20250227_173016",
+      "inference_time_s": 2.965313500026241
+    },
+    {
+      "sample_id": "20250227_173136",
+      "inference_time_s": 3.0108770999941044
+    },
+    {
+      "sample_id": "20250227_173255",
+      "inference_time_s": 3.023859300010372
+    },
+    {
+      "sample_id": "20250227_173306",
+      "inference_time_s": 2.9667551000020467
+    },
+    {
+      "sample_id": "20250227_173312",
+      "inference_time_s": 3.0523270000121556
+    },
+    {
+      "sample_id": "20250227_173320",
+      "inference_time_s": 3.0093361000181176
+    },
+    {
+      "sample_id": "20250227_173336",
+      "inference_time_s": 2.983389700006228
+    },
+    {
+      "sample_id": "20250227_173441",
+      "inference_time_s": 3.0669290000223555
+    },
+    {
+      "sample_id": "20250227_173648",
+      "inference_time_s": 2.9520320000010543
+    },
+    {
+      "sample_id": "20250227_173949",
+      "inference_time_s": 3.01907450001454
+    },
+    {
+      "sample_id": "20250227_173957",
+      "inference_time_s": 3.039333999971859
+    },
+    {
+      "sample_id": "20250227_174003",
+      "inference_time_s": 3.1329308999702334
+    },
+    {
+      "sample_id": "20250227_174013",
+      "inference_time_s": 3.1305734000052325
+    },
+    {
+      "sample_id": "20250227_174024",
+      "inference_time_s": 3.0375438000191934
+    },
+    {
+      "sample_id": "model1_L1 copy",
+      "inference_time_s": 2.990970399987418
+    },
+    {
+      "sample_id": "model1_L1",
+      "inference_time_s": 3.1783687000279315
+    },
+    {
+      "sample_id": "model1_L2 copy",
+      "inference_time_s": 2.933990999998059
+    },
+    {
+      "sample_id": "model1_L2",
+      "inference_time_s": 3.082335699989926
+    },
+    {
+      "sample_id": "model1_L3 copy",
+      "inference_time_s": 3.0258431999827735
+    },
+    {
+      "sample_id": "model1_L3",
+      "inference_time_s": 2.956344200007152
+    },
+    {
+      "sample_id": "model1_L4 copy",
+      "inference_time_s": 3.108347200031858
+    },
+    {
+      "sample_id": "model1_L4",
+      "inference_time_s": 2.970422199985478
+    },
+    {
+      "sample_id": "model1_L5 copy",
+      "inference_time_s": 2.99774050002452
+    },
+    {
+      "sample_id": "model1_L5",
+      "inference_time_s": 3.056459099985659
+    },
+    {
+      "sample_id": "model1_L6 copy",
+      "inference_time_s": 2.9375469999504276
+    },
+    {
+      "sample_id": "model1_L6",
+      "inference_time_s": 3.0818107000086457
+    },
+    {
+      "sample_id": "model1_L7 copy",
+      "inference_time_s": 3.0300478999852203
+    },
+    {
+      "sample_id": "model1_L7",
+      "inference_time_s": 2.9548937000217848
+    },
+    {
+      "sample_id": "model1_L8 copy",
+      "inference_time_s": 3.0943221999914385
+    },
+    {
+      "sample_id": "model1_L8",
+      "inference_time_s": 2.9763326999964193
+    },
+    {
+      "sample_id": "model2_L10 copy",
+      "inference_time_s": 2.993905999988783
+    },
+    {
+      "sample_id": "model2_L10",
+      "inference_time_s": 3.0172839000006206
+    },
+    {
+      "sample_id": "model2_L11 copy",
+      "inference_time_s": 2.9489954999880865
+    },
+    {
+      "sample_id": "model2_L11",
+      "inference_time_s": 3.0194575000205077
+    },
+    {
+      "sample_id": "model2_L12 copy",
+      "inference_time_s": 2.9702012999914587
+    },
+    {
+      "sample_id": "model2_L12",
+      "inference_time_s": 2.9706346999737434
+    },
+    {
+      "sample_id": "model2_L13 copy",
+      "inference_time_s": 3.0420377000118606
+    },
+    {
+      "sample_id": "model2_L13",
+      "inference_time_s": 2.942293800006155
+    },
+    {
+      "sample_id": "model2_L14 copy",
+      "inference_time_s": 3.042087799985893
+    },
+    {
+      "sample_id": "model2_L14",
+      "inference_time_s": 3.0583673999644816
+    },
+    {
+      "sample_id": "model2_L15 copy",
+      "inference_time_s": 2.936837499961257
+    },
+    {
+      "sample_id": "model2_L15",
+      "inference_time_s": 3.0788775000255555
+    },
+    {
+      "sample_id": "model2_L16 copy",
+      "inference_time_s": 3.007613499998115
+    },
+    {
+      "sample_id": "model2_L16",
+      "inference_time_s": 2.9807681000093
+    },
+    {
+      "sample_id": "model2_L17 copy",
+      "inference_time_s": 3.097108499961905
+    },
+    {
+      "sample_id": "model2_L17",
+      "inference_time_s": 2.9585444000549614
+    },
+    {
+      "sample_id": "model2_L18 copy",
+      "inference_time_s": 3.037441599997692
+    },
+    {
+      "sample_id": "model2_L18",
+      "inference_time_s": 3.0735726999701
+    },
+    {
+      "sample_id": "model2_L19 copy",
+      "inference_time_s": 2.9333786999923177
+    },
+    {
+      "sample_id": "model2_L19",
+      "inference_time_s": 3.0932356999837793
+    },
+    {
+      "sample_id": "model2_L20 copy",
+      "inference_time_s": 3.011266199988313
+    },
+    {
+      "sample_id": "model2_L20",
+      "inference_time_s": 2.9724230999709107
+    },
+    {
+      "sample_id": "model2_L21 copy",
+      "inference_time_s": 3.110794900043402
+    },
+    {
+      "sample_id": "model2_L21",
+      "inference_time_s": 2.9602865999913774
+    },
+    {
+      "sample_id": "model2_L22 copy",
+      "inference_time_s": 3.031348499993328
+    },
+    {
+      "sample_id": "model2_L22",
+      "inference_time_s": 3.0847329999669455
+    },
+    {
+      "sample_id": "model2_L9 copy",
+      "inference_time_s": 2.9307605999638326
+    },
+    {
+      "sample_id": "model2_L9",
+      "inference_time_s": 3.0596098999958485
+    },
+    {
+      "sample_id": "model3_L1 copy",
+      "inference_time_s": 3.028814999968745
+    },
+    {
+      "sample_id": "model3_L1",
+      "inference_time_s": 2.9625135000096634
+    },
+    {
+      "sample_id": "model3_L2 copy",
+      "inference_time_s": 3.1098629999905825
+    },
+    {
+      "sample_id": "model3_L2",
+      "inference_time_s": 2.9645240000099875
+    },
+    {
+      "sample_id": "model3_L3 copy",
+      "inference_time_s": 3.0202324999845587
+    },
+    {
+      "sample_id": "model3_L3",
+      "inference_time_s": 3.0816028999979608
+    },
+    {
+      "sample_id": "model3_L4 copy",
+      "inference_time_s": 2.9449928000103682
+    },
+    {
+      "sample_id": "model3_L4",
+      "inference_time_s": 3.0830206999671645
+    },
+    {
+      "sample_id": "model3_L5 copy",
+      "inference_time_s": 3.039540199970361
+    },
+    {
+      "sample_id": "model3_L5",
+      "inference_time_s": 2.9564322999794967
+    }
+  ],
+  "generated_at": "2026-06-16T05:23:46.861717+00:00"
+}
