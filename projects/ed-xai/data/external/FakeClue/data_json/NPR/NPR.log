@@ -1,0 +1,44 @@
+============================================================
+Split: train | Model: npr
+============================================================
+Total: 104343 | Processed: 104343 | Failed: 0
+Accuracy: 0.5074 (52948/104343)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  25630
+  TN (real->real):  27318
+  FP (real->fake):  8629
+  FN (fake->real):  42766
+
+Per-category accuracy:
+  animal: 0.7423 (11346/15285)
+  deepfake: 0.2610 (6254/23961)
+  doc: 0.2139 (2576/12042)
+  human: 0.3554 (3226/9077)
+  object: 0.7801 (14666/18800)
+  satellite: 0.6337 (11486/18125)
+  scene: 0.4812 (3394/7053)
+============================================================
+
+============================================================
+Split: test | Model: npr
+============================================================
+Total: 5000 | Processed: 5000 | Failed: 0
+Accuracy: 0.5044 (2522/5000)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  1174
+  TN (real->real):  1348
+  FP (real->fake):  460
+  FN (fake->real):  2018
+
+Per-category accuracy:
+  animal: 0.7196 (539/749)
+  deepfake: 0.2723 (318/1168)
+  doc: 0.1979 (114/576)
+  human: 0.3846 (155/403)
+  object: 0.7601 (659/867)
+  satellite: 0.6194 (542/875)
+  scene: 0.5387 (195/362)
+============================================================
+

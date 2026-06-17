@@ -1,0 +1,44 @@
+============================================================
+Split: train | Model: spai
+============================================================
+Total: 104343 | Processed: 102795 | Failed: 1548
+Accuracy: 0.6171 (63435/102795)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  34540
+  TN (real->real):  28895
+  FP (real->fake):  6730
+  FN (fake->real):  32630
+
+Per-category accuracy:
+  animal: 0.8230 (12565/15268)
+  deepfake: 0.3440 (8242/23961)
+  doc: 0.2008 (2124/10579)
+  human: 0.7587 (6862/9045)
+  object: 0.8123 (15250/18773)
+  satellite: 0.7324 (13274/18125)
+  scene: 0.7266 (5118/7044)
+============================================================
+
+============================================================
+Split: test | Model: spai
+============================================================
+Total: 5000 | Processed: 4922 | Failed: 78
+Accuracy: 0.6077 (2991/4922)
+
+Confusion matrix (FakeClue convention: 0=fake, 1=real):
+  TP (fake->fake):  1529
+  TN (real->real):  1462
+  FP (real->fake):  333
+  FN (fake->real):  1598
+
+Per-category accuracy:
+  animal: 0.8037 (602/749)
+  deepfake: 0.3313 (387/1168)
+  doc: 0.1960 (98/500)
+  human: 0.7419 (299/403)
+  object: 0.8185 (708/865)
+  satellite: 0.7337 (642/875)
+  scene: 0.7044 (255/362)
+============================================================
+

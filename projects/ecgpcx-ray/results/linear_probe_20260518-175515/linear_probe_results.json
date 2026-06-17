@@ -1,0 +1,18 @@
+{
+  "linear_probe": {
+    "backbone": "DenseNet121 (ImageNet, frozen)",
+    "classifier": "LogisticRegression(class_weight='balanced', C=1.0)",
+    "feature_dim": 1024,
+    "n_train": 42452,
+    "n_val": 8798,
+    "n_test": 9425,
+    "test_auc_roc": 0.6111,
+    "test_accuracy": 0.5708,
+    "threshold": 0.0
+  },
+  "xrv_zeroshot": {
+    "backbone": "DenseNet121 (NIH, torchxrayvision densenet121-res224-nih)",
+    "test_auc_roc": 0.6739,
+    "test_accuracy": 0.6493
+  }
+}
