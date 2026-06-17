@@ -487,7 +487,7 @@ The reconstruction loss decreased throughout training and stabilized near the en
 
 ![CVAE Loss behavior](training-results/cvae/loss-behavior.png)
 
-The final experiment contains 94 completed epochs. Training loss decreased from **0.4044** at the first saved epoch to **0.0183** at the last saved epoch. Validation loss decreased from **0.1509** to **0.0187**, and the validation image score remained high near the end of training, reaching approximately **0.9966** in the final logged epoch.
+The final experiment contains 73 completed epochs. Training loss decreased from **0.4044** at the first saved epoch to **0.0183** at the last saved epoch. Validation loss decreased from **0.1509** to **0.0187**, and the validation image score remained high near the end of training, reaching approximately **0.9966** in the final logged epoch.
 
 This behavior indicates that the CVAE learned a stable reconstruction mapping for the lung-mask-conditioned inputs. The low final losses and high validation image score suggest that the skip-connected architecture preserves global anatomy well. At the same time, the generated outputs remain smoother than the original X-rays, which is expected for a VAE-style model and limits fine radiological texture.
 
@@ -549,7 +549,7 @@ The FID score of 136.5358 indicates a noticeable distributional difference betwe
 
 ![CVAE Change Heatmap](training-results/cvae/results/cvae_change_heatmap_002.png)
 
-The figure shows four example input/output pairs (blue = real input, red = generated counterfactual) with corresponding change heatmaps. Heatmaps visualize the absolute per-pixel difference between the original and the generated image; brighter pixels indicate larger changes.
+The figure shows four example input/output pairs with corresponding change heatmaps. Heatmaps visualize the absolute per-pixel difference between the original and the generated image; brighter pixels indicate larger changes.
 
 Observed behavior:
 - Anatomy preservation: reconstructions keep global chest structure (lung fields, rib cage, cardiac silhouette), indicating the model preserves patient-specific anatomy.
