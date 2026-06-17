@@ -1,0 +1,15 @@
+{
+  "model": "CVAE",
+  "healthy_to_pneumonia": {
+    "n_pairs": 8978,
+    "flip_rate": 0.0257,
+    "delta_mean": -0.0017,
+    "delta_std": 0.0373
+  },
+  "pneumonia_to_healthy": {
+    "n_pairs": 43,
+    "flip_rate": 0.0465,
+    "delta_mean": -0.0115,
+    "delta_std": 0.0411
+  }
+}

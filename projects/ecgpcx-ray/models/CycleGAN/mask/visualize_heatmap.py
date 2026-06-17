@@ -114,8 +114,7 @@ def style_axis(ax, spine_color, lw=2.5):
 # ---------------------------------------------------------------------------
 
 def render_batch(h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
-                 args, save_path, batch_idx, n_batches):
-    n = BATCH_SIZE
+                 args, save_path, batch_idx, n_batches, n=BATCH_SIZE):
 
     row_data = [
         (h_imgs, gen_P, h_masks),
@@ -220,8 +219,14 @@ def parse_args():
     p.add_argument("--colormap",      default="hot")
     p.add_argument("--overlay_alpha", type=float, default=0.55)
     p.add_argument("--blur_sigma",    type=float, default=2.0)
-    p.add_argument("--output_dir",    default="mask/outputs/img_generation")
+    p.add_argument("--output_dir",    default="models/CycleGAN/mask/outputs/img_generation")
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    p.add_argument("--healthy_images",   nargs="+", default=None,
+                   help="Specific healthy filenames to visualize (e.g. 00001358_000.png). "
+                        "If omitted, sweeps the full directory.")
+    p.add_argument("--pneumonia_images", nargs="+", default=None,
+                   help="Specific pneumonia filenames to visualize. "
+                        "Must have the same length as --healthy_images.")
     return p.parse_args()
 
 
@@ -239,48 +244,87 @@ def main():
     G_P2H = model.G_P2H.to(device).eval()
     print(f"  Loaded epoch {ckpt.get('epoch', '?')} checkpoint.")
 
-    healthy_paths   = collect_paths(args.healthy_dir)
-    pneumonia_paths = collect_paths(args.pneumonia_dir)
+    healthy_dir   = Path(args.healthy_dir)
+    pneumonia_dir = Path(args.pneumonia_dir)
 
-    healthy_batches   = list(chunked(healthy_paths,   BATCH_SIZE))
-    pneumonia_batches = list(chunked(pneumonia_paths, BATCH_SIZE))
-    n_batches = min(len(healthy_batches), len(pneumonia_batches))
+    if args.healthy_images is not None or args.pneumonia_images is not None:
+        # --- Specific-image mode ---
+        if args.healthy_images is None or args.pneumonia_images is None:
+            raise ValueError("--healthy_images and --pneumonia_images must both be provided.")
+        if len(args.healthy_images) != len(args.pneumonia_images):
+            raise ValueError(
+                f"--healthy_images ({len(args.healthy_images)}) and "
+                f"--pneumonia_images ({len(args.pneumonia_images)}) must have the same length."
+            )
+        healthy_paths   = [healthy_dir   / name for name in args.healthy_images]
+        pneumonia_paths = [pneumonia_dir / name for name in args.pneumonia_images]
+        for p in healthy_paths + pneumonia_paths:
+            if not p.exists():
+                raise FileNotFoundError(f"Image not found: {p}")
 
-    skipped_h = len(healthy_paths)   - len(healthy_batches)   * BATCH_SIZE
-    skipped_p = len(pneumonia_paths) - len(pneumonia_batches) * BATCH_SIZE
-
-    print(f"\nHealthy images   : {len(healthy_paths)}  → {len(healthy_batches)} complete batches"
-          + (f"  ({skipped_h} skipped)" if skipped_h else ""))
-    print(f"Pneumonia images : {len(pneumonia_paths)}  → {len(pneumonia_batches)} complete batches"
-          + (f"  ({skipped_p} skipped)" if skipped_p else ""))
-    print(f"Output files     : {n_batches}\n")
-
-    out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    for batch_idx in range(n_batches):
-        h_imgs,  h_masks  = load_batch(healthy_batches[batch_idx],   args.healthy_masks_dir,   args.image_size, device)
-        p_imgs,  p_masks  = load_batch(pneumonia_batches[batch_idx], args.pneumonia_masks_dir, args.image_size, device)
+        n = len(healthy_paths)
+        h_imgs, h_masks = load_batch(healthy_paths,   args.healthy_masks_dir,   args.image_size, device)
+        p_imgs, p_masks = load_batch(pneumonia_paths, args.pneumonia_masks_dir, args.image_size, device)
 
         with torch.no_grad():
             gen_P = G_H2P(torch.cat([h_imgs, h_masks], dim=1))
-            gen_P = gen_P * h_masks + h_imgs * (1 - h_masks)   # hard mask
+            gen_P = gen_P * h_masks + h_imgs * (1 - h_masks)
             gen_H = G_P2H(torch.cat([p_imgs, p_masks], dim=1))
-            gen_H = gen_H * p_masks + p_imgs * (1 - p_masks)   # hard mask
+            gen_H = gen_H * p_masks + p_imgs * (1 - p_masks)
 
-        save_path = out_dir / f"change_heatmap_mask_{batch_idx + 1:03d}.png"
+        out_dir   = Path(args.output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        save_path = out_dir / "change_heatmap_mask_selected.png"
 
-        render_batch(
-            h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
-            args, save_path, batch_idx, n_batches,
-        )
+        render_batch(h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
+                     args, save_path, batch_idx=0, n_batches=1, n=n)
 
-        h_names = [p.name for p in healthy_batches[batch_idx]]
-        p_names = [p.name for p in pneumonia_batches[batch_idx]]
-        print(f"  [{batch_idx + 1:>{len(str(n_batches))}}/{n_batches}]  {save_path.name}"
-              f"  (H: {', '.join(h_names)}  |  P: {', '.join(p_names)})")
+        print(f"\nSaved: {save_path}")
 
-    print(f"\nDone. {n_batches} files saved to {out_dir}/")
+    else:
+        # --- Full-sweep mode (original behaviour) ---
+        healthy_paths   = collect_paths(args.healthy_dir)
+        pneumonia_paths = collect_paths(args.pneumonia_dir)
+
+        healthy_batches   = list(chunked(healthy_paths,   BATCH_SIZE))
+        pneumonia_batches = list(chunked(pneumonia_paths, BATCH_SIZE))
+        n_batches = min(len(healthy_batches), len(pneumonia_batches))
+
+        skipped_h = len(healthy_paths)   - len(healthy_batches)   * BATCH_SIZE
+        skipped_p = len(pneumonia_paths) - len(pneumonia_batches) * BATCH_SIZE
+
+        print(f"\nHealthy images   : {len(healthy_paths)}  → {len(healthy_batches)} complete batches"
+              + (f"  ({skipped_h} skipped)" if skipped_h else ""))
+        print(f"Pneumonia images : {len(pneumonia_paths)}  → {len(pneumonia_batches)} complete batches"
+              + (f"  ({skipped_p} skipped)" if skipped_p else ""))
+        print(f"Output files     : {n_batches}\n")
+
+        out_dir = Path(args.output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        for batch_idx in range(n_batches):
+            h_imgs, h_masks = load_batch(healthy_batches[batch_idx],   args.healthy_masks_dir,   args.image_size, device)
+            p_imgs, p_masks = load_batch(pneumonia_batches[batch_idx], args.pneumonia_masks_dir, args.image_size, device)
+
+            with torch.no_grad():
+                gen_P = G_H2P(torch.cat([h_imgs, h_masks], dim=1))
+                gen_P = gen_P * h_masks + h_imgs * (1 - h_masks)
+                gen_H = G_P2H(torch.cat([p_imgs, p_masks], dim=1))
+                gen_H = gen_H * p_masks + p_imgs * (1 - p_masks)
+
+            save_path = out_dir / f"change_heatmap_mask_{batch_idx + 1:03d}.png"
+
+            render_batch(
+                h_imgs, p_imgs, gen_P, gen_H, h_masks, p_masks,
+                args, save_path, batch_idx, n_batches,
+            )
+
+            h_names = [p.name for p in healthy_batches[batch_idx]]
+            p_names = [p.name for p in pneumonia_batches[batch_idx]]
+            print(f"  [{batch_idx + 1:>{len(str(n_batches))}}/{n_batches}]  {save_path.name}"
+                  f"  (H: {', '.join(h_names)}  |  P: {', '.join(p_names)})")
+
+        print(f"\nDone. {n_batches} files saved to {out_dir}/")
 
 
 if __name__ == "__main__":
