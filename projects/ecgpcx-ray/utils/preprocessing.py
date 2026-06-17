@@ -7,10 +7,15 @@ removal, outlier detection), patient filtering, and image loading and resizing.
 
 import os
 import kagglehub
-import torch
 import pandas as pd
 import numpy as np
 from PIL import Image
+from xrv_lung_segmentation import (
+    TorchXRayVisionLungSegmenter,
+    apply_lung_segmentation,
+    create_lung_mask_images,
+)
+import torch
 from torch.utils.data import DataLoader
 from dataset import PyTorchDataset
 
@@ -210,8 +215,8 @@ class Preprocessing():
         removes duplicates, and removes age outliers.
         """
         # Filter patients with the specified condition
-        # pneumonia_only_df = self.metadata[self.metadata['Finding Labels'] == self.label]
         pneumonia_only_df = self.metadata[self.metadata['Finding Labels'].str.contains('Pneumonia')]
+        # pneumonia_only_df = self.metadata[self.metadata['Finding Labels'] == self.label]
 
 
         if verbose:
@@ -315,7 +320,22 @@ class Preprocessing():
 
         return all_images
     
-    def _load_images(self, size, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15, seed=42, verbose=True, method='minmax'):
+    def _load_images(
+        self,
+        size,
+        train_ratio=0.7,
+        val_ratio=0.15,
+        test_ratio=0.15,
+        seed=42,
+        verbose=True,
+        method='minmax',
+        allowed_labels=None,
+        apply_segmentation=False,
+        add_mask_channel=False,
+        segmentation_device=None,
+        segmentation_threshold=0.5,
+        segmentation_mask_value=0,
+    ):
         """Main pipeline to load and preprocess all images and metadata.
         
         Orchestrates the complete preprocessing workflow:
@@ -331,6 +351,11 @@ class Preprocessing():
             test_ratio (float): Fraction of data to use for testing. Default: 0.15.
             seed (int): Random seed for reproducibility. Default: 42.
             verbose (bool): Whether to print loading progress. Default: True.
+            method (str): Normalization method for age. Options: 'minmax' or 'standard'. Default: 'minmax'.
+            apply_segmentation (bool): Whether to apply lung segmentation to images. Default: False.
+            segmentation_device (str or torch.device): Device for lung segmentation model. Default: None (auto-detect).
+            segmentation_threshold (float): Threshold for lung mask binarization. Default: 0.5.
+            segmentation_mask_value (int): Pixel value to use for masked-out areas. Default: 0.
 
         Returns:
             tuple: Two lists (all_pneumonia_images, all_healthy_images) containing
@@ -344,18 +369,88 @@ class Preprocessing():
             method=method
         )
 
-        #Load images for train, test and validation sets
+        # Restrict the split dataframes to the allowed labels before image loading.
         train_df = split_results['train_df']
         val_df = split_results['val_df']
         test_df = split_results['test_df']
+
+        if allowed_labels is not None:
+            allowed = set(allowed_labels)
+            train_df = train_df[train_df['Finding Labels'].isin(allowed)].reset_index(drop=True)
+            val_df = val_df[val_df['Finding Labels'].isin(allowed)].reset_index(drop=True)
+            test_df = test_df[test_df['Finding Labels'].isin(allowed)].reset_index(drop=True)
+            split_results['train_df'] = train_df
+            split_results['val_df'] = val_df
+            split_results['test_df'] = test_df
 
         train_images = self._load_all_images(size, train_df, verbose=verbose)
         val_images = self._load_all_images(size, val_df, verbose=verbose)
         test_images = self._load_all_images(size, test_df, verbose=verbose)
 
-        return train_images, val_images, test_images, split_results
+        train_masks = None
+        val_masks = None
+        test_masks = None
 
-    def create_cvae_dataset(self, img_size=(128, 128), train_ratio=0.7, val_ratio=0.15, test_ratio=0.15, seed=42, verbose=True, method='minmax'):
+        if apply_segmentation or add_mask_channel:
+            if verbose:
+                print("Running TorchXRayVision lung segmentation...")
+            segmenter = TorchXRayVisionLungSegmenter(
+                device=segmentation_device,
+                threshold=segmentation_threshold,
+                mask_value=segmentation_mask_value,
+            )
+
+        if add_mask_channel:
+            train_masks = create_lung_mask_images(
+                train_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+            val_masks = create_lung_mask_images(
+                val_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+            test_masks = create_lung_mask_images(
+                test_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+
+        if apply_segmentation:
+            train_images = apply_lung_segmentation(
+                train_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+            val_images = apply_lung_segmentation(
+                val_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+            test_images = apply_lung_segmentation(
+                test_images,
+                verbose=verbose,
+                segmenter=segmenter,
+            )
+
+        return train_images, val_images, test_images, split_results, train_masks, val_masks, test_masks
+
+    def create_cvae_dataset(
+        self,
+        img_size=(128, 128),
+        train_ratio=0.7,
+        val_ratio=0.15,
+        test_ratio=0.15,
+        seed=42,
+        verbose=True,
+        method='minmax',
+        apply_lung_segmentation=False,
+        add_lung_mask_channel=False,
+        segmentation_device=None,
+        segmentation_threshold=0.5,
+        segmentation_mask_value=0,
+    ):
         """Create a PyTorch Dataset suitable for CVAE model training with DataLoader.
         
         Combines pneumonia and healthy data, normalizes age, encodes gender,
@@ -368,6 +463,11 @@ class Preprocessing():
             test_ratio (float): Fraction of data to use for testing. Default: 0.15.
             seed (int): Random seed for reproducibility. Default: 42.
             verbose (bool): Whether to print loading progress. Default: True.
+            method (str): Normalization method for age. Options: 'minmax' or 'standard'. Default: 'minmax'.
+            apply_lung_segmentation (bool): Whether to apply lung segmentation to images. Default: False.
+            segmentation_device (str or torch.device): Device for lung segmentation model. Default: None (auto-detect).
+            segmentation_threshold (float): Threshold for lung mask binarization. Default: 0.5.
+            segmentation_mask_value (int): Pixel value to use for masked-out areas. Default: 0.
         Returns:
             tuple: (train_dataset, test_dataset, val_dataset) where:
                    - train_dataset: PyTorchDataset with training samples
@@ -382,19 +482,46 @@ class Preprocessing():
         # Load and preprocess data
         if verbose:
             print("Loading images...")
-        train_images, val_images, test_images, split_results = self._load_images(size=img_size, train_ratio=train_ratio, val_ratio=val_ratio, test_ratio=test_ratio, seed=seed, verbose=verbose, method=method)
+        (
+            train_images,
+            val_images,
+            test_images,
+            split_results,
+            train_masks,
+            val_masks,
+            test_masks,
+        ) = self._load_images(
+            size=img_size,
+            train_ratio=train_ratio,
+            val_ratio=val_ratio,
+            test_ratio=test_ratio,
+            seed=seed,
+            verbose=verbose,
+            method=method,
+            allowed_labels={self.label, 'No Finding'},
+            apply_segmentation=apply_lung_segmentation,
+            add_mask_channel=add_lung_mask_channel,
+            segmentation_device=segmentation_device,
+            segmentation_threshold=segmentation_threshold,
+            segmentation_mask_value=segmentation_mask_value,
+        )
         
         # Get dataframes with preprocessed data
         train_df = split_results['train_df']
         val_df = split_results['val_df']
         test_df = split_results['test_df']
-        
+
+        # Keep only the requested disease label and healthy controls.
+        allowed_labels = {self.label, 'No Finding'}
+        train_df = train_df[train_df['Finding Labels'].isin(allowed_labels)].reset_index(drop=True)
+        val_df = val_df[val_df['Finding Labels'].isin(allowed_labels)].reset_index(drop=True)
+        test_df = test_df[test_df['Finding Labels'].isin(allowed_labels)].reset_index(drop=True)
+
         # Filter to only include rows where images were successfully loaded
         train_df = train_df.iloc[:len(train_images)]
         val_df = val_df.iloc[:len(val_images)]
         test_df = test_df.iloc[:len(test_images)]
-        
-        
+                
         # One-hot encode the label columns for each split
         train_df = self._one_hot_encode_label_column(train_df, label_col='Label', num_classes=2, prefix='Label')
         val_df = self._one_hot_encode_label_column(val_df, label_col='Label', num_classes=2, prefix='Label')
@@ -414,10 +541,35 @@ class Preprocessing():
         val_metadata = np.column_stack([val_df['Patient Age Normalized'].values, val_df['Patient Gender Encoded'].values])
         val_metadata = torch.from_numpy(val_metadata).float()
         
-        train_dataset = PyTorchDataset(train_images, train_labels, train_metadata)
-        test_dataset = PyTorchDataset(test_images, test_labels, test_metadata)
-        val_dataset = PyTorchDataset(val_images, val_labels, val_metadata)
-        
+        train_dataset = PyTorchDataset(train_images, train_labels, train_metadata, masks=train_masks)
+        test_dataset = PyTorchDataset(test_images, test_labels, test_metadata, masks=test_masks)
+        val_dataset = PyTorchDataset(val_images, val_labels, val_metadata, masks=val_masks)
+
+        splits_info = {
+            'train': {
+                'total_samples': len(train_df),
+                'pneumonia': len(train_df[train_df['Finding Labels'] != 'No Finding']),
+                'healthy': len(train_df[train_df['Finding Labels'] == 'No Finding']),
+            },
+            'val': {
+                'total_samples': len(val_df),
+                'pneumonia': len(val_df[val_df['Finding Labels'] !='No Finding']),
+                'healthy': len(val_df[val_df['Finding Labels'] == 'No Finding']),
+            },
+            'test': {
+                'total_samples': len(test_df),
+                'pneumonia': len(test_df[test_df['Finding Labels'] != 'No Finding']),
+                'healthy': len(test_df[test_df['Finding Labels'] == 'No Finding']),
+            }
+        }
+
+        if verbose:
+            for split_name, stats in splits_info.items():
+                print(f"\n{split_name.upper()} set:")
+                print(f"  Total images: {stats['total_samples']}")
+                print(f"  Pneumonia: {stats['pneumonia']} images")
+                print(f"  Healthy: {stats['healthy']} images")
+
         return train_dataset, test_dataset, val_dataset
 
     def get_pneumonia_dataframe(self):
@@ -512,19 +664,19 @@ class Preprocessing():
             'train': {
                 'total_samples': len(train_df),
                 'total_patients': len(train_patients),
-                'pneumonia': len(train_df[train_df['Finding Labels'] == self.label]),
+                'pneumonia': len(train_df[train_df['Finding Labels'] != 'No Finding']),
                 'healthy': len(train_df[train_df['Finding Labels'] == 'No Finding']),
             },
             'val': {
                 'total_samples': len(val_df),
                 'total_patients': len(val_patients),
-                'pneumonia': len(val_df[val_df['Finding Labels'] == self.label]),
+                'pneumonia': len(val_df[val_df['Finding Labels'] !='No Finding']),
                 'healthy': len(val_df[val_df['Finding Labels'] == 'No Finding']),
             },
             'test': {
                 'total_samples': len(test_df),
                 'total_patients': len(test_patients),
-                'pneumonia': len(test_df[test_df['Finding Labels'] == self.label]),
+                'pneumonia': len(test_df[test_df['Finding Labels'] != 'No Finding']),
                 'healthy': len(test_df[test_df['Finding Labels'] == 'No Finding']),
             }
         }
@@ -599,13 +751,13 @@ if __name__ == '__main__':
     print("\n" + "=" * 60)
     print("EXAMPLE 2: CVAE-Compatible Dataset (Original)") 
     print("=" * 60)
-    
+
     # Create CVAE-compatible dataset
     train_dataset, test_dataset, val_dataset = preprocessing.create_cvae_dataset(
         img_size=(128, 128),
-        verbose=True
+        verbose=True,
     )
-    
+        
     # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)

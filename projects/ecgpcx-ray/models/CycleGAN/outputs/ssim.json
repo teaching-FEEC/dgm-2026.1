@@ -1,0 +1,29 @@
+{
+  "H2P": {
+    "n": 92,
+    "mean": 0.7790953542065361,
+    "std": 0.180763317495041,
+    "min": 0.033799104392528534,
+    "max": 0.9238371849060059
+  },
+  "P2H": {
+    "n": 43,
+    "mean": 0.7527590782143349,
+    "std": 0.1337482541003077,
+    "min": 0.40816253423690796,
+    "max": 0.9247161149978638
+  },
+  "combined": {
+    "n": 135,
+    "mean": 0.7707067625942053,
+    "std": 0.16717819041231097,
+    "min": 0.033799104392528534,
+    "max": 0.9247161149978638
+  },
+  "checkpoint": "checkpoints/epoch_199.pt",
+  "healthy_dir": "../../data/processed/test/healthy",
+  "pneumonia_dir": "../../data/processed/test/pneumonia",
+  "image_size": 128,
+  "use_mask": false,
+  "timestamp": "2026-06-15T21:19:43"
+}

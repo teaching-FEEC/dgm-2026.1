@@ -1,0 +1,31 @@
+{
+  "H2P": {
+    "n": 8978,
+    "mean": 0.9803934194484515,
+    "std": 0.016361279123339612,
+    "min": 0.7763215899467468,
+    "max": 1.0
+  },
+  "P2H": {
+    "n": 43,
+    "mean": 0.980953877748445,
+    "std": 0.01864948115214595,
+    "min": 0.9022009968757629,
+    "max": 0.9946314692497253
+  },
+  "combined": {
+    "n": 9021,
+    "mean": 0.9803960909601352,
+    "std": 0.016371813977876095,
+    "min": 0.7763215899467468,
+    "max": 1.0
+  },
+  "split_csv": "data/test_split.csv",
+  "healthy_dir": "data/healthy_images",
+  "pneumonia_dir": "data/pnemonia_images",
+  "generated_h2p_dir": "data/generated/healthy_to_pneumonia",
+  "generated_p2h_dir": "data/generated/pneumonia_to_healthy",
+  "image_size": 128,
+  "use_mask": true,
+  "timestamp": "2026-06-15T21:13:19"
+}

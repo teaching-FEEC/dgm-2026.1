@@ -1,0 +1,16 @@
+{
+  "fid_H2P": 112.302092,
+  "fid_P2H": 107.809171,
+  "mean_fid": 110.055631,
+  "checkpoint": "models/CycleGAN/mask/checkpoints/epoch_199.pt",
+  "epoch": 199,
+  "healthy_dir": "data/processed/test/healthy",
+  "pneumonia_dir": "data/processed/test/pneumonia",
+  "healthy_masks_dir": "data/processed/test/healthy_masks",
+  "pneumonia_masks_dir": "data/processed/test/pneumonia_masks",
+  "n_healthy": 92,
+  "n_pneumonia": 43,
+  "image_size": 128,
+  "use_mask": true,
+  "timestamp": "2026-06-15T20:54:59"
+}
