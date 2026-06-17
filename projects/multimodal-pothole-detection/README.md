@@ -74,12 +74,8 @@ This project presents a framework that adapts a pre-trained generative 3D diffus
 
 ## 6. Methodology
 The proposed framework converts road images into quantitative outputs for pothole severity assessment and maintenance planning.
-### 6.1. Hypothesis 
-Our central hypothesis is that a generative 3D model (Point-E) can successfully reconstruct the topology of a pothole from a single monocular RGB image, enabling practical severity assessment (depth/volume) without requiring perfect metrological-grade stereo setups during inference. Operationally, we test the following:
-- **Latent Space Scaling:** Feeding carefully padded square crops to a Generative Point Cloud diffusion model allows the extraction of 3D geometry whilst maintaining physical proportions intact.
-- **Robustness via RANSAC:** Applying geometric leveling over training data guarantees that the generative model learns pure depth (the crater) without being biased by camera pitch or road inclination.
+### 6.1. Workflow 
 
-***Scope note:*** The project prioritizes practical utility, relative severity ranking, and successful architectural pipeline adaptation, rather than sub-millimeter full mesh reconstruction.
 
 ### 6.2. Geometric Core and Data Standardization
 #### Geometric Leveling (RANSAC)
@@ -315,46 +311,6 @@ The animations below show the three ground-truth point clouds after preparation.
   <b>Fig.</b> Prepared ground-truth clouds for model1, model2, and model3. Each was assembled from multiple PLY scan sections to cover the full pothole extent.
 </p>
 
-### Workflow
-
-```mermaid
-graph LR
-        Input["Full RGB Image<br>and Camera Intrinsics"]
-        Crop["Padded Square Crop"]
-        NormCloud["Normalized 3D Cloud<br>[-1, 1]"]
-        Output["Scaled 3D Topology"]
-
-        subgraph Stage1 [2D Segmentation]
-            Seg["Generic 2D Segmenter"]
-        end
-
-        subgraph Stage2 [3D Generation]
-            PointE["Point-E Diffusion"]
-        end
-
-        %% Image processing flow
-        Input --> Seg
-        Seg --> Crop
-        Crop --> PointE
-        PointE --> NormCloud
-        
-        %% Scale bypass flow (The solution to Scale Ambiguity)
-        Input -.->|"Calibration Data"| ScaleNode{"Apply Camera<br>Intrinsics"}
-        NormCloud --> ScaleNode
-        ScaleNode --> Output
-
-        classDef dataNode fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000,shape:rect
-        classDef processNode fill:#fcfcfc,stroke:#000000,stroke-width:1px,color:#000000,shape:rect
-        classDef logicNode fill:#ffffff,stroke:#000000,stroke-width:1px,stroke-dasharray: 2 2,color:#000000
-        
-        class Input,Crop,NormCloud,Output dataNode
-        class Seg,PointE processNode
-        class ScaleNode logicNode
-
-        style Stage1 fill:none,stroke:#333333,stroke-width:1px,stroke-dasharray: 4 4
-        style Stage2 fill:none,stroke:#333333,stroke-width:1px,stroke-dasharray: 4 4
-```
-
 ### 6.4. Exploratory Data Analysis
 
 #### 6.4.1 Dataset Inventory and Integrity
@@ -388,9 +344,9 @@ The missing depth fraction, the proportion of masked pothole pixels with zero de
 The images below illustrate two of the most common failure modes observed in PothRGDB:
 
 <p align="center">
-  <img src="reports/figures/pothrgb/water/20250227_175817.jpg" width="45%">
+  <img src="reports/figures/pothrgb_20250227_175817_water.gif" width="45%">
   &nbsp;
-  <img src="reports/figures/pothrgb/shadow/20250305_125803.jpg" width="45%">
+  <img src="reports/figures/pothrgb_shadow_20250305_125803.gif" width="45%">
 </p>
 <p align="center">
   <b>Left:</b> Water inside the pothole scatters the IR beam, producing invalid depth readings in exactly the deepest region. <b>Right:</b> Harsh sunlight creates pitch-black shadows where stereo matching fails entirely.
