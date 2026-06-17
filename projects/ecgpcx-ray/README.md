@@ -185,11 +185,11 @@ Counterfactual generation is performed by encoding an input image into the laten
 Two CVAE variants exist in the repository:
 
 - `models/cvae.py`: fully connected CVAE baseline.
-- `models/cvae_cnn.py`: convolutional CVAE used in the latest experiment.
+- `models/cvae_cnn.py`: convolutional CVAE used in the final experiment.
 
 The CNN-based CVAE uses four convolutional encoder blocks and a transposed-convolution decoder. The final model uses two input channels: the grayscale X-ray and the TorchXRayVision lung mask. The decoder outputs a single reconstructed or counterfactual X-ray channel. The latent dimension is 64, and conditioning combines the binary disease label, normalized age, and a learned gender embedding.
 
-### Implemented CVAE workflow
+**Implemented CVAE workflow**
 
 The following diagram summarizes the actual CVAE pipeline used in this project, from the input image and conditioning variables to the reconstructed or counterfactual output.
 
@@ -248,7 +248,7 @@ It is normalized by the batch size so that its scale is more comparable across b
 
 - Reconstructions are still smoother than the original X-rays, which is common in VAE-based models.
 - The strong class imbalance can bias generated images toward healthy-looking reconstructions.
-- The generated counterfactuals still require classifier-based validity evaluation through flip rate and confidence change.
+- The generated counterfactuals do not present much change when compared to the original image.
 
 #### 1.2 Cycle-Consistent GAN (CycleGAN)
 
@@ -278,6 +278,44 @@ Cycle consistency can help preserve anatomical structure while modifying disease
 **Advantages:**
 - Works with unpaired data
 - Produces sharper and more realistic images
+
+#### 1.3 Lung-Guided Generation
+
+Both generative models (CVAE and CycleGAN) were trained with explicit guidance from anatomical lung masks produced by the TorchXRayVision PSPNet segmenter. The motivation is that pathological changes in pneumonia are concentrated in the lung fields: guiding the models toward this region reduces spurious modifications to the cardiac silhouette, ribs, and background, and makes the evaluation through difference heatmaps more interpretable.
+
+**Mask generation**
+
+For each chest X-ray in the dataset, a binary lung mask is generated offline by the method. The segmenter loads the pretrained PSPNet model from TorchXRayVision, runs inference on the grayscale image, takes the union of the left-lung and right-lung output channels, applies a sigmoid activation, and binarizes the result at a threshold of 0.5. The resulting mask has pixel value 1 inside the lung fields and 0 everywhere else. All masks are generated once before training and stored alongside the corresponding images, so that no segmentation inference is performed at training time.
+
+The figure below shows a healthy chest X-ray from the training set (left), its binary lung mask (centre), and an overlay that highlights the segmented lung region in blue (right).
+
+![Lung mask example](images/lung_mask_example.png)
+
+**How the mask is used in the CVAE**
+
+The CVAE receives the lung mask as a second input channel concatenated with the grayscale X-ray, so the encoder can observe the lung boundary while compressing the image into the latent space. During training, the mask also splits the reconstruction loss into three spatial components:
+
+- A lung reconstruction loss, computed only inside the mask, which encourages the model to faithfully reconstruct the clinically relevant region.
+- An outside-lung reconstruction loss, computed outside the mask, which penalises unnecessary changes to the background with a higher weight ($\lambda_{outside} = 3.0$).
+- A global reconstruction loss over the full image.
+
+This asymmetric weighting tells the CVAE to focus its generative capacity on the lung fields while strongly discouraging background alterations.
+
+**How the mask is used in the CycleGAN**
+
+The CycleGAN applies the mask as a hard spatial constraint at generation time: after each generator produces a translated image, the background pixels (mask = 0) are replaced directly by the corresponding pixels from the real input image. Only the lung region (mask = 1) is allowed to differ from the source image:
+
+$$
+\hat{x}_{cf} = G(x) \odot M + x \odot (1 - M)
+$$
+
+where $G(x)$ is the generator output, $M$ is the binary lung mask, and $\odot$ denotes element-wise multiplication.
+
+In addition, the cycle consistency loss and the identity loss are computed with region-specific weights: the inside-lung weight is $\lambda_{inside} = 1.0$ and the outside-lung weight is $\lambda_{outside} = 3.0$, strongly penalising any cycle-consistency error in the background.
+
+**Effect on counterfactual generation**
+
+The lung mask constraint limits the spatial extent of changes that either model can introduce, making the generated counterfactuals more anatomically plausible and easier to interpret through change heatmaps. Regions outside the lung fields remain close to the original image by construction, so observed differences between the input and the counterfactual are more likely to reflect disease-related modifications rather than stylistic or background artefacts.
 
 ### 2. Classification Models
 
@@ -329,6 +367,7 @@ These metrics directly test whether the generated image changes the classifier d
 | scikit-learn | Planned classification metrics and evaluation utilities |
 | Jupyter Notebook | Exploratory analysis and experimentation |
 | kagglehub | Dataset download from Kaggle |
+| TorchXrayVision | Lung segmentation algorithm |
 
 ## Evaluation Methodology
 
@@ -359,7 +398,7 @@ The evaluation will consider three aspects:
 
 # Workflow
 
-The diagram below summarizes the actual reproducibility flow implemented in this project: which data enters each stage, how it is transformed, and which outputs are produced for the experiments.
+The diagram below summarizes the actual flow implemented in this project: which data enters each stage, how it is transformed, and which outputs are produced for the experiments.
 
 ![Workflow](images/workflow-d3-vertical.png)
 
@@ -376,101 +415,27 @@ The original project schedule is also available:
 > It is considered fundamental that the presentation of results should not serve as a treatise whose only purpose is to show that "a lot of work was done."
 > What is expected from this section is that it presents and discusses only the most relevant results, highlighting the strengths and/or limitations of the methodology, emphasizing aspects of performance, and containing content that can be classified as organized, didactic, and reproducible sharing of knowledge relevant to the community.
 
-## Experiment 1: Classifier Baseline
+## Experiment 1: Classifier Baseline 
 
 The classifier is the downstream oracle used to evaluate the counterfactual validity of the generative models (CVAE and CycleGAN): a generated *pneumonia* image should flip the classifier's prediction with respect to the source *healthy* image, and vice-versa. The classifier itself is a standard binary supervised model that takes a single-channel chest X-ray as input and outputs a logit for the pneumonia class.
 
-As the main ideia is that the classifier will be the way to evaluate the generative models, it has to be good classifier, so some test were experimented for it's development. Four families of models were trained and compared on the same train/val/test splits of the NIH Chest X-ray dataset:
+As the main ideia is that the classifier will be the way to evaluate the generative models, it has to be good classifier, so some test were experimented for it's development. 
 
-- **SimpleCNN (baseline)** — a 5-block convolutional network trained from scratch.
-- **SimpleCNN + augmentation** — same architecture, trained with light geometric augmentations.
-- **FrozenResNet-18** — ImageNet-pretrained ResNet-18 with the backbone frozen and a new binary head.
-- **FrozenDenseNet-121** — ImageNet-pretrained DenseNet-121 with the backbone frozen and a new binary head (CheXNet-style architecture).
+We evaluated four classifier configurations as candidate oracles for counterfactual validity. All models were trained on the NIH Chest X-ray dataset under severe class imbalance, using `WeightedRandomSampler` and Youden's J threshold selection. Full training curves, confusion matrices, and per-experiment artifacts are available in the respective `notebook` indicated in the table below.
 
-All models output a single raw logit and are trained with `BCEWithLogitsLoss` using an attenuated `pos_weight = sqrt(n_neg / n_pos)` to address severe class imbalance (~0.5% pneumonia in train). The square-root attenuation softens the standard `n_neg / n_pos` weight (≈190) into a more stable value (~13.8) that still upweights positives without dominating the gradient.
-
-### 1.1 Training Configuration
-
-| Hyperparameter | Value |
-|---|---|
-| Image size (cache) | 128 × 128 (grayscale, normalized to [0, 1]) |
-| Train / Val / Test | 42,452 / 8,798 / 9,425 |
-| Pneumonia rate | train 0.525% · val 0.557% · test 0.531% |
-| Batch size | 32 (pretrained) / 64 (SimpleCNN) |
-| Learning rate | 3 × 10⁻⁴ |
-| Optimizer | Adam (β₁ = 0.9, β₂ = 0.999), weight_decay = 1 × 10⁻⁴ |
-| Loss | BCEWithLogits with `pos_weight = sqrt(n_neg / n_pos)` ≈ 13.76 |
-| Scheduler | ReduceLROnPlateau on val AUC (factor 0.5, patience 3) |
-| Epochs | up to 100, early-stop patience 10 (on val AUC) |
-
-**SimpleCNN architecture** — 5 convolutional blocks (Conv3×3 → BN → ReLU → MaxPool 2) with channels `1 → 32 → 64 → 128 → 256 → 512`, followed by AdaptiveAvgPool2d(1), Dropout(0.3), `Linear(512 → 128) → ReLU → Dropout(0.3) → Linear(128 → 1)`.
-
-**Frozen backbones** — torchvision ImageNet-pretrained ResNet-18 and DenseNet-121 with the entire backbone frozen and a new `Linear(features → 1)` head. Grayscale inputs are repeated across 3 channels and standardized with ImageNet statistics before the backbone.
-
-**Training data augmentation** (train split only, when enabled):
-- Random rotation (±10°)
-- Random horizontal flip (p = 0.5)
-- Random resized crop (scale = [0.95, 1.0])
-
-**Evaluation protocol** — at the end of training the best checkpoint (max val AUC) is loaded. An optimal decision threshold is selected on the validation set via Youden's J statistic (`argmax(TPR − FPR)`), then applied to the test set. AUC-ROC is threshold-independent and is the primary metric; accuracy and confusion matrix are reported at the Youden threshold.
-
-### 1.2 Training
-
-Five experiments were run, each corresponding to one notebook under [notebooks/](notebooks/):
-
-| Notebook | Goal |
-|---|---|
-| `1.0-train_baseline_classifier_cnn` | Establish a from-scratch baseline with no augmentation. |
-| `1.2-train_augmented_classifier_cnn` | Measure the effect of light geometric augmentation on the same SimpleCNN. |
-| `1.1-train_pretrained_resnet18` | Linear probe on ImageNet ResNet-18 (head-only training). |
-| `1.3-train_pretrained_densenet121` | Linear probe on ImageNet DenseNet-121 (CheXNet-style head-only). |
-
-The training/validation AUC and loss were tracked at every epoch. Early stopping triggered between epochs 12 and 20 for every model, well before the 100-epoch budget — none of the configurations were limited by training time.
-
-### 1.3 Results
-
-#### 1.3.1 SimpleCNN — Baseline and Augmented Variants
-
-**Baseline (no augmentation)** — [results/baseline_cnn_20260516-164040/](results/baseline_cnn_20260516-164040/)
-
-![SimpleCNN baseline training curves](results/baseline_cnn_20260516-164040/train_curves.png)
-
-The SimpleCNN baseline was the only experiment in which a `pos_weight` scale of `n_neg / n_pos` (≈190). was applied. The model reached a peak validation AUC of **0.6411** at epoch 8, after which performance deteriorated. Training AUC continued climbing past 0.90 while training loss fell from 0.27 to 0.18. However, validation loss began rising after epoch 8, indicating overfitting. Early stopping triggered at epoch 18. On the test set, the model achieved AUC = **0.6668** and accuracy = **0.9947** — the latter being a misleading metric: with only 0.5% positive samples, predicting "healthy" for every instance already yields 99.5% accuracy. Given the overfitting observed, one likely contributing factor was the excessively large `pos_weight`, and subsequent experiments adopted an attenuated value of `pos_weight = sqrt(n_neg / n_pos)`.
-
-**Augmented variant** — [results/augmented_cnn_20260517-172811/](results/augmented_cnn_20260517-172811/)
-
-![Augmentation examples](results/augmented_cnn_20260517-172811/augmentation_examples.png)
-
-![SimpleCNN augmented training curves](results/augmented_cnn_20260517-172811/training_curves.png)
-
-Adding light geometric augmentation (rotation ±10°, horizontal flip, random resized crop 0.95–1.0) brought peak val AUC to **0.6284** (epoch 2) with early stopping at epoch 12. Test AUC = **0.6383**, test accuracy = **0.6857**. The augmentation slightly reduced overfitting (train and val curves stay closer together) but did **not** improve the AUC over the no-augmentation baseline. The drop in accuracy versus the baseline is expected: a different (higher) effective threshold from Youden's J trades many true negatives for slightly higher recall, but at this positive rate the trade is not favourable on raw accuracy.
-
-#### 1.3.2 Frozen Pretrained Backbones
-
-**FrozenResNet-18** — [results/resnet18_20260518-110522/](results/resnet18_20260518-110522/)
-
-![ResNet18 ROC](results/resnet18_20260518-110522/training_curves.png)
-
-The third baseline introduced a pretrained approach using ResNet18 as a frozen feature extractor, with only the classification head trained from scratch. Over 20 epochs — with no early stopping triggered — training loss decreased modestly from 0.27 to 0.24, while training AUC improved gradually but with considerable noise, oscillating between 0.68 and 0.72 in the later epochs without clear convergence. Validation AUC showed a slow, steady improvement throughout training, rising from 0.52 at epoch 1 to a peak of 0.5758 at epoch 19, with no sign of the sharp deterioration observed in the SimpleCNN baseline. Validation loss remained highly volatile across all epochs, exhibiting no consistent upward or downward trend, which suggests the frozen backbone produced representations that were not well-suited to this domain without fine-tuning.
-
-The final metrics were: best validation AUC = 0.5758, test AUC = 0.5718, and test accuracy = 0.7211. Training AUC plateaued around 0.71, indicating that the classification head extracted as much discriminative signal as the frozen ImageNet features could provide
-
-**FrozenDenseNet-121** — [results/densenet121_20260518-094701/](results/densenet121_20260518-094701/)
-
-![DenseNet121 training curves](results/densenet121_20260518-094701/training_curves.png)
-
-The fourth baseline adopted DenseNet-121 as a frozen feature extractor, following the same protocol as the ResNet18 baseline. Training dynamics showed a clear and consistent improvement: training loss fell steadily from 0.27 to 0.18, and training AUC climbed from 0.60 to 0.88 over 12 epochs — a substantially stronger training signal than observed in any previous baseline. However, validation behavior told the opposite story. Validation loss rose monotonically from 0.46 at epoch 1 to 0.88 at epoch 12, and validation AUC peaked early at 0.5728 (epoch 2) before declining and oscillating around 0.56–0.57 for the remainder of training, indicating severe overfitting from the first epochs onward. Early stopping triggered at epoch 13.
-
-The final metrics were: best validation AUC = 0.5406 (epoch 3), test AUC = 0.6207, and test accuracy = 0.7949. Despite DenseNet-121 being the backbone behind CheXNet and considerably deeper than ResNet18, the frozen-backbone setup did not outperform the from-scratch SimpleCNN. The rapidly diverging train and validation curves suggest that the dense feature representations, while powerful in the ImageNet domain, do not generalize to chest X-ray pathology without fine-tuning — and that the classification head, trained alone, quickly memorized training-set patterns rather than learning transferable discriminative features.
-
-#### 1.3.3 Consolidated Test-Set Results
-
-| Notebook | Model | Test AUC ↑ | Test Acc (Youden) | Best Val AUC | Stopped at |
+ Notebook | Model | Training data | Test AUC-ROC ↑ | Test PR-AUC ↑ | Test Acc (Youden) 
 |---|---|---|---|---|---|
-| 1.0 | SimpleCNN baseline (no aug) | 0.6668 | 0.9947* | 0.6411 | epoch 18 |
-| 1.2 | SimpleCNN + augmentation | 0.6383 | 0.6857 | 0.6284 | epoch 12 |
-| 1.1 | FrozenResNet-18 (linear probe) | 0.5718 | 0.7211 | 0.5758 | epoch 20 |
-| 1.3 | FrozenDenseNet-121 (linear probe) | 0.6207 | 0.7949 | 0.5406 | epoch 13 |
+| 1.0 | SimpleCNN (baseline) | Original | 0.5684 | 0.0074 | 0.5985 | 
+| 1.1 | FrozenResNet-18 | Original | 0.6986 | 0.0138 | 0.6707 | 
+| 1.2 | SimpleCNN + Geometric Aug | Original + aug | 0.5790 | 0.0098 | 0.4255 |
+| 1.3 | FrozenDenseNet-121 | Original | 0.6764 | 0.0091 | 0.5437 |
+| 1.6 | CheXNet (oracle) | ChestX-ray14 (frozen) | **0.7423** | **0.0170** | 0.6296 | 
+
+None of the four trained classifiers achieved discriminative performance reliable enough to serve as a counterfactual oracle. The best result (SimpleCNN, AUC = 0.6668) still showed clear overfitting, and the frozen backbone variants failed to generalize to the chest X-ray domain without fine-tuning.
+
+**CheXNet as the evaluation oracle.** We therefore adopted CheXNet [15] — a DenseNet-121 trained by Rajpurkar et al. (2017) on the full ChestX-ray14 dataset (112,120 images, 14 pathologies) — as a fixed external judge for all subsequent evaluation. Its key advantage is domain-specific pre-training on the same NIH distribution used in this project, producing feature representations far richer than any of our linear probes. With AUC = 0.7423 and sensitivity of 79.6% on the test set, it provides the most reliable signal available for measuring whether a counterfactual image carries pneumonia-like evidence. All CheXNet weights are frozen throughout evaluation.
+
+> ℹ️ **Section Experiment 4** revisits this setup: after generating synthetic images with the CVAE and CycleGAN, we fine-tune CheXNet on each synthetic dataset and compare the resulting classifiers against the frozen baseline.
 
 ## Experiment 2: CVAE Training
 
@@ -483,8 +448,8 @@ The final metrics were: best validation AUC = 0.5406 (epoch 3), test AUC = 0.620
 | Output channels | 1: reconstructed/generated X-ray |
 | Batch size | 16 |
 | Planned epochs | 300 |
-| Completed epochs in saved run | 94 |
-| Best epoch checkpoint | 78 |
+| Completed epochs in saved run | 73 |
+| Best epoch checkpoint | 58 |
 | Learning rate | 3 x 10^-4 |
 | Optimizer | Adam |
 | Latent dimension | 64 |
@@ -497,11 +462,39 @@ The final metrics were: best validation AUC = 0.5406 (epoch 3), test AUC = 0.620
 
 The final CVAE experiment uses the convolutional implementation in `models/cvae_cnn.py`. The training input concatenates the resized grayscale X-ray and its lung mask, while the decoder generates only the image channel. Skip connections pass encoder features into the decoder to preserve spatial structure, and FiLM conditioning injects label and metadata information into decoder blocks.
 
-### 2.2 Training Loss Behavior
+To reduce class imbalance, the training set was downsampled to a 50:1 ratio of healthy to pneumonia images, resulting in a total of 11,475 samples.
+
+### 2.2 Training
+
+**Baseline CVAE**
+
+The training was run for 300 epochs, with the final checkpoint saved at epoch 299. The final notebook output reports:
+
+| Metric | Epoch 0 | Epoch 299 |
+|---|---:|---:|
+| Total Training loss | 0.046 | 0.012 |
+| Training reconstruction loss | 0.040 | 0.012 |
+| Total Validation loss | 0.036 | 0.014 |
+| Validation reconstruction loss | 0.030 | 0.014 |
+| Training KL divergence | 43.155 | 609.191 |
+| Validation KL divergence | 46.102 | 611.220 |
+
+The reconstruction loss decreased throughout training and stabilized near the end, indicating that the CVAE learned to reconstruct the overall structure of the chest X-ray images. The validation loss remained close to the training loss, suggesting limited overfitting in this experiment. The KL divergence increased during training, which is expected as the latent space becomes more informative and captures more variation in the data. Since the KL term is weighted by the β parameter, the total loss remains primarily influenced by the reconstruction term.
+
+**Mask-Guided CVAE**
+
+| Metric | Epoch 0 | Epoch 73 |
+|---|---:|---:|
+| Total Training loss | 0.404 | 0.018 |
+| Training reconstruction loss | 0.028 | 0.003 |
+| Total Validation loss | 0.151 | 0.019 |
+| Validation reconstruction loss | 0.011 | 0.003 |
+| Training KL divergence | 116.525 | 0.020 |
+| Validation KL divergence | 88.609 | 0.077 |
 
 ![CVAE Loss behavior](training-results/cvae/loss-behavior.png)
 
-The final experiment contains 94 completed epochs. Training loss decreased from **0.3880** at the first saved epoch to **0.0170** at the last saved epoch. Validation loss decreased from **0.1562** to **0.0126**, and the validation image score remained high near the end of training, reaching approximately **0.9971** in the final logged epoch.
+The final experiment contains 94 completed epochs. Training loss decreased from **0.4044** at the first saved epoch to **0.0183** at the last saved epoch. Validation loss decreased from **0.1509** to **0.0187**, and the validation image score remained high near the end of training, reaching approximately **0.9966** in the final logged epoch.
 
 This behavior indicates that the CVAE learned a stable reconstruction mapping for the lung-mask-conditioned inputs. The low final losses and high validation image score suggest that the skip-connected architecture preserves global anatomy well. At the same time, the generated outputs remain smoother than the original X-rays, which is expected for a VAE-style model and limits fine radiological texture.
 
@@ -509,9 +502,9 @@ Example reconstruction outputs:
 
 ![CVAE reconstruction epoch 0](training-results/cvae/results/reconstruction_0.png)
 
-![CVAE reconstruction epoch 93](training-results/cvae/results/reconstruction_93.png)
+![CVAE reconstruction epoch 73](training-results/cvae/results/reconstruction_73.png)
 
-### 2.3 Counterfactual Generation
+### 2.3 Generation and Results
 
 After training, counterfactual images were generated for the complete test set by flipping the input class condition:
 
@@ -520,53 +513,92 @@ After training, counterfactual images were generated for the complete test set b
 
 The latent representation was extracted from the original image and decoded using the opposite disease condition. During generation, the lung-aware setup encourages the model to preserve patient-specific anatomy and avoid unnecessary changes outside the lung fields.
 
-In total, **9,176 original images** and **9,176 counterfactual images** were evaluated.
+In total, **9,021 original images** and **9,021 counterfactual images** were evaluated.
 
-### 2.4 Qualitative Evaluation
+**Baseline CVAE**
 
 **Counterfactual image generation examples**
 
-> Generate image
+![CVAE Counterfactual examples](training-results/cvae_e2/results/generation_examples.png)
 
 The figure above shows 4 example pairs for each translation direction. Blue borders denote real (input) images while red borders denote generated counteerfactual (output) images.
 
-The generated examples show that the CVAE preserves the main anatomical layout of the input X-rays, including the lung fields, rib cage, and cardiac silhouette. The changes introduced by the CVAE are subtle, and the lung-mask channel helps make the lung region explicit during training.
-
-The generated outputs are smoother than the original images. This suggests that the model captures global structure more strongly than fine radiological texture, losing some sharpness in bones, borders, and small artifacts. This smoothness is a known limitation of VAE-based image generation.
+The generated examples preserve the main anatomical layout of the input X-rays, including the lung fields, rib cage, and cardiac silhouette. The changes introduced by the CVAE are subtle, which is desirable for counterfactual explanations, but the generated outputs are also smoother than the original images. This suggests that the model is capturing global structure more strongly than fine radiological texture, losing the sharpness of the images and making it difficult to identify aspects like bones or artifacts in the images.
 
 **Counterfactual change heatmaps**
 
-![CVAE Change Heatmap](training-results/cvae/results/change_heatmaps/cvae_change_heatmap_002.png)
+![CVAE Change Heatmap](training-results/cvae_e2/results/cvae_change_heatmap_008.png)
 
-The change heatmaps show absolute pixel-level differences between each original image and its generated counterfactual. Brighter regions indicate stronger image changes. These heatmaps are used only as qualitative visual checks; the project no longer treats them as the main explainability strategy.
+The heatmaps show the absolute pixel-level differences between each original image and its generated counterfactual. Brighter regions indicate where the CVAE changed the image more strongly.
 
-The changes are not uniformly distributed across the full image, which supports the counterfactual goal of localized modifications rather than arbitrary global shifts. However, the final result show highlighted areas more concentrated on the lung regions but we can see some highlighted regions are diffuse and may include areas outside the most clinically relevant lung regions. With that, we can see that using the lung segmentation algorithm helped, but not fully resolved the issue.
+The changes are not uniformly distributed across the full image, which supports the counterfactual goal of localized modifications rather than arbitrary global shifts. However, some highlighted regions are diffuse and may include areas outside the most clinically relevant lung regions, so these maps should still be interpreted as qualitative evidence and compared with classifier-based explanations in future experiments.
 
-### 2.5 Quantitative Evaluation
+**Quantitative Evaluation**
 
 | Metric | Value |
 |---|---:|
-| Number of SSIM pairs | 9,176 |
-| Mean SSIM | 0.9957 |
-| SSIM standard deviation | 0.0022 |
-| Minimum SSIM | 0.9052 |
-| Maximum SSIM | 0.9978 |
-| Number of counterfactual images | 9,176 |
-| Number of reference images | 9,176 |
-| FID | 2.7269 |
+| Number of SSIM pairs | 9,425 |
+| Mean SSIM | 0.8190 |
+| SSIM standard deviation | 0.0503 |
+| Minimum SSIM | 0.3929 |
+| Maximum SSIM | 0.9544 |
+| Number of counterfactual images | 9,425 |
+| Number of reference images | 9,425 |
+| FID | 136.5358 |
 
-The mean SSIM of 0.9954 indicates that the generated counterfactuals preserved most of the original image structure, which is important since counterfactual explanations should mainly modify disease-related regions while maintaining anatomical consistency.
+The mean SSIM of 0.8190 indicates that the generated counterfactuals preserved most of the original image structure, which is important since counterfactual explanations should mainly modify disease-related regions while maintaining anatomical consistency. However, the minimum SSIM value of 0.3929 indicates that some generated samples differed substantially from the original images and may require individual inspection.
 
-The FID score of 2.7269 ...
+The FID score of 136.5358 indicates a noticeable distributional difference between the generated counterfactuals and the reference images. This is consistent with a common limitation of VAE-based image generation, where reconstructed images preserve global anatomy but may appear smoother or less realistic than real chest X-rays. Overall, the CVAE provides a useful baseline for counterfactual generation, although further refinement or comparison with models such as CycleGAN may improve image realism.
 
-The counterfactual validity evaluation focuses on classifier behavior:
+---
+
+**Mask-Guided CVAE**
+
+![CVAE Change Heatmap](training-results/cvae/results/change_heatmaps/cvae_change_heatmap_002.png)
+
+The figure shows four example input/output pairs (blue = real input, red = generated counterfactual) with corresponding change heatmaps. Heatmaps visualize the absolute per-pixel difference between the original and the generated image; brighter pixels indicate larger changes.
+
+Observed behavior:
+- Anatomy preservation: reconstructions keep global chest structure (lung fields, rib cage, cardiac silhouette), indicating the model preserves patient-specific anatomy.
+- Localized changes: differences are mostly concentrated inside the lung fields, which aligns with the counterfactual objective of modifying disease-related regions rather than the whole image.
+- Limited strength and some spillover: changes are generally subtle and occasionally diffuse, with small activations outside the most relevant lung areas. The lung-mask input reduces but does not fully eliminate these peripheral changes.
+- Limited changes: some generated images show almost no change when compared to the real image. It shows that the model learned to construct well the image, but not to produce good counterfactuals.
+
+Overall, the heatmaps provide a concise qualitative check: they confirm the CVAE produces anatomically consistent, localized modifications, but the visual changes are often too subtle to unambiguously represent strong pathological features on their own.
+
+**Quantitative Evaluation**
+
+
+**SSIM and FID**
 
 | Metric | Value |
-|---|---|
-| Flip rate |  |
-| Confidence change | |
+|---|---:|
+| Number of SSIM pairs | 9,021 |
+| Mean SSIM | 0.9945 |
+| SSIM standard deviation | 0.0034 |
+| Minimum SSIM | 0.8794 |
+| Maximum SSIM | 0.9974 |
+| Number of counterfactual images | 9,021 |
+| Number of reference images | 9,021 |
+| FID | 2.8795 |
 
+The mean SSIM of 0.9945 indicates that the generated counterfactuals preserve image structure very closely on average, meaning the encoder/decoder and skip connections successfully retain patient-specific anatomy. The low standard deviation and high minimum SSIM (0.8794) show this behavior is consistent across most pairs, although the minimum indicates a small subset of cases with visibly larger structural differences.
 
+The FID score of 2.8795 is very low, suggesting the generated images are close to the real-image distribution according to the Inception-based feature space used for FID. Important caveats apply: FID is sensitive to dataset size, preprocessing, and the choice of features (and can be artificially low when generation is overly conservative, which is probably the case here). Given the high SSIM and the CVAE's tendency toward smooth reconstructions, the low FID here likely reflects strong anatomical preservation rather than the introduction of realistic, high-frequency pathological texture. Therefore, interpret FID together with visual checks and classifier-facing metrics rather than as definitive proof of clinical realism.
+
+---
+
+**Comparison: Baseline vs Mask-Guided**
+
+| Metric | Baseline | Mask-Guided | Delta |
+|---|---|---|---|
+| H→P FID ↓ | 136.5925 | 2.8839 | -133.7086 |
+| P→H FID ↓ | 222.6104 | 15.6049 | -207.0055 |
+| Mean FID ↓ | 179.6014 | 9.2444 | -170.357 |
+| H→P SSIM ↑ | 0.8191 | 0.9945 | +0.1754 |
+| P→H SSIM ↑ | 0.8095 | 0.9944 | +0.1849 |
+
+Empirically, the two CVAE variants show a clear trade-off. The baseline CVAE produced larger visible changes but achieved lower structural similarity and realism metrics (mean SSIM = 0.8190, FID = 136.54), meaning reconstructions are smoother and distributionally farther from real X-rays. The mask-guided CVAE, which explicitly injects lung masks and applies mask-weighted reconstruction losses, preserved anatomy far better (mean SSIM = 0.9945, min SSIM = 0.8794) and obtained a much lower FID (2.88). However, the very high SSIM and low FID for the mask-guided model indicate generation that is extremely conservative—changes are tightly localized to lung fields but often subtle, which can reduce the strength of observable pathological cues and limit classifier-flipping power. In short: mask-guidance substantially improves anatomical fidelity and localization of edits, while the baseline CVAE produces more noticeable (but less anatomically faithful) modifications; selecting between them depends on whether the goal prioritizes localized, anatomically consistent counterfactuals (mask-guided) or stronger visual edits that may better affect classifier output (baseline).
 
 ## Experiment 3: CycleGAN Training
 
@@ -629,7 +661,29 @@ The most notable behavior is the monotonic upward trend of the GAN loss througho
 
 The total generator loss combines the GAN term (weight 1), cycle consistency (λ_cycle = 10), and identity (λ_identity = 5) terms. The identity loss was included to preserve color and style consistency, but it may actually be hurting training: in early epochs, the cycle and identity terms dominate the gradient, giving the discriminators time to build a persistent advantage the generators never recover from. Future experiments will test reduced or removed identity weighting to check whether this improves adversarial balance.
 
+#### Mask-Guided CycleGAN (128 × 128, 6 residual blocks, lung mask)
+
+The mask-guided variant inherits the full baseline configuration and adds three changes:
+
+- **2-channel generator input**: the grayscale X-ray and the binary lung mask are concatenated along the channel dimension, so each generator receives spatial information about the lung boundary at every forward pass.
+- **Region-weighted losses**: the cycle consistency loss and identity loss are computed separately inside (`λ_inside = 1.0`) and outside (`λ_outside = 3.0`) the lung mask. The higher outside weight penalises unnecessary changes to the background more strongly than in the standard formulation.
+- **Hard masking at generation time**: after each generator produces an output, background pixels (mask = 0) are replaced directly by the corresponding real input pixels, ensuring that only the lung region can change between the original and the counterfactual.
+
+Training ran for 200 epochs with the same optimizer, learning rate, and replay-buffer setup as the baseline. Loss curves and progress images were saved to `mask/outputs/`.
+
+#### Training Loss Behavior (Mask-Guided)
+
+![CycleGAN Mask-Guided Training Loss Curves](models/CycleGAN/mask/outputs/losses/loss_curve.png)
+
+Training ran for 200 epochs on the NIH Chest X-ray training split. All losses are plotted on a logarithmic scale.
+
+The **generator total loss (G_loss)** started high (~20) due to the larger region-weighted terms and decreased continuously throughout training, reaching approximately 3.5 by epoch 200 — a more consistent downward trend than observed in the baseline. The **cycle consistency loss** dropped from ~12 in the first epochs to ~1.8 at epoch 200, reflecting the larger absolute scale imposed by the region weighting (λ_outside = 3.0) relative to the unweighted baseline formulation. The **identity loss** decreased from ~7 to ~1.0, following the same downward pattern. The **discriminator losses (D_H, D_P)** decreased steadily from ~0.20 to ~0.09, indicating that discriminators improved progressively. The **GAN loss** increased from ~0.3 to ~0.8, replicating the same adversarial imbalance observed in the baseline: discriminators gain a persistent advantage that the generators do not fully recover from. The **validation cycle loss** tracks the training cycle loss closely, suggesting no overfitting to the training domain.
+
+Compared to the baseline, the total G_loss decreases monotonically instead of stabilising, which is a more favourable training dynamic. The underlying adversarial imbalance remains, but the region-weighted losses appear to provide a stronger and more consistent gradient signal throughout training.
+
 ### 3.3 Generation and Results
+
+#### Baseline CycleGAN
 
 #### Visual Quality of Generated Images
 
@@ -670,7 +724,130 @@ FID was evaluated on the test set using the checkpoint from epoch 200:
 | Pneumonia → Healthy (G_P2H)  | 109.58 |
 | **Mean FID**  | **115.34** |
 
-The FID scores are moderately high. The slightly better FID for the P→H direction may reflect that the healthy domain is larger and more varied, providing a richer target distribution. These scores serve as a baseline for comparison in future experiments.
+The FID scores are moderately high. The slightly better FID for the P→H direction may reflect that the healthy domain is larger and more varied, providing a richer target distribution. These scores serve as a baseline for comparison with the mask-guided variant below.
+
+---
+
+#### Mask-Guided CycleGAN
+
+**Counterfactual image generation examples**
+
+![CycleGAN Mask-Guided Generation Examples](models/CycleGAN/mask/outputs/img_generation/generation_examples_mask.png)
+
+The figure above shows 4 example triplets for each translation direction, randomly sampled from the test set. Blue borders denote real (input) images; red borders denote generated (output) images; green borders show the lung mask overlay on the input image.
+
+The generated images preserve the chest background perfectly by construction: the hard masking step copies all non-lung pixels directly from the input. Changes are strictly confined to the segmented lung fields, which remain visually coherent chest X-rays. The mask overlay (third column of each triplet) confirms that the segmented region covers both lung lobes and leaves the cardiac silhouette, ribs, and diaphragm untouched.
+
+---
+
+**Counterfactual change heatmaps**
+
+![CycleGAN Mask-Guided Change Heatmap](models/CycleGAN/mask/outputs/img_generation/change_heatmap_full_selected.png)
+
+The heatmaps visualise the absolute per-pixel difference between the real and generated images, overlaid on the real image. Brighter colours indicate larger pixel-level changes. The rightmost column shows the binary lung mask for spatial reference.
+
+In contrast to the baseline, the change activity is almost entirely confined to the lung mask region. Pixels outside the mask are unchanged by construction, so the heatmap highlights only lung-internal modifications. This spatial specificity makes the mask-guided counterfactuals easier to interpret: any observed difference between input and output can be attributed to the lung region rather than background artefacts.
+
+**Quantitative Evaluation**
+
+FID was evaluated on the test set using the checkpoint from epoch 200:
+
+| Translation | FID |
+|---|---|
+| Healthy → Pneumonia (G_H2P) | 112.30 |
+| Pneumonia → Healthy (G_P2H) | 107.81 |
+| **Mean FID** | **110.06** |
+
+SSIM was computed between each original image and its generated counterfactual:
+
+| Translation | Mean SSIM | Std | n |
+|---|---|---|---|
+| Healthy → Pneumonia (G_H2P) | 0.9804 | 0.0164 | 8,978 |
+| Pneumonia → Healthy (G_P2H) | 0.9810 | 0.0186 | 43 |
+
+The very high SSIM values (> 0.98) are expected: the hard mask copies the background unchanged, so only the lung region (~20–30% of pixels) can contribute to SSIM loss. These values are therefore not directly comparable to the baseline SSIM, which allowed the full image to change.
+
+---
+
+#### Comparison: Baseline vs Mask-Guided
+
+| Metric | Baseline | Mask-Guided | Δ |
+|---|---|---|---|
+| H→P FID ↓ | 121.09 | 112.30 | −8.79 |
+| P→H FID ↓ | 109.58 | 107.81 | −1.77 |
+| Mean FID ↓ | 115.34 | 110.06 | −5.28 |
+| H→P SSIM ↑ | 0.7791 | 0.9804 | +0.20 (†) |
+| P→H SSIM ↑ | 0.7528 | 0.9810 | +0.23 (†) |
+
+(†) SSIM values are not directly comparable: the baseline computes SSIM over the full image (all pixels free to change), while the mask-guided variant hard-copies the background, so SSIM only reflects differences in the lung region.
+
+The mask constraint improved FID in both directions without requiring architectural changes. The reduction is largest for H→P (−8.79 points), where the baseline struggled most, suggesting that constraining generation to the lung fields helps the model focus on disease-relevant texture differences. The improvement in P→H is more modest (−1.77), consistent with the smaller and more homogeneous pneumonia test set. The change heatmaps confirm qualitatively that the mask-guided model produces more localised and interpretable counterfactual modifications.
+
+## Experiment 4: CheXNet as Oracle and Fine-Tuned Classifier
+
+As established in Section 1.3, none of the classifiers trained from scratch reached discriminative performance reliable enough to serve as a counterfactual oracle. We therefore evaluate all generative models using CheXNet [15] as a fixed external judge — a DenseNet-121 pre-trained on the full ChestX-ray14 dataset, with weights frozen throughout. We use it to evaluate the translations made by the CVAE and CycleGAN trained with the mask-guided approach, which achieved the best performance as discussed in the previews sections.
+
+For each translation direction (Healthy → Pneumonia and Pneumonia → Healthy), we report three metrics under the frozen CheXNet oracle:
+
+- **Flip Rate**: the fraction of images whose predicted label changed after translation, indicating how often the generative model produced a convincing counterfactual.
+- **Mean P(original)**: average CheXNet pneumonia probability before translation.
+- **Mean P(translated)**: average CheXNet pneumonia probability after translation.
+
+The results below show a clear contrast between the two models. In the Healthy → Pneumonia direction, CycleGAN achieves a substantially higher flip rate (0.146) compared to CVAE (0.026), suggesting that CycleGAN translations introduce more visually convincing pneumonia-like features. In the Pneumonia → Healthy direction, both models perform modestly, with flip rates of 0.070 and 0.047 respectively, reflecting the inherent difficulty of removing pathological features from a diseased image while preserving overall realism.
+
+#### Healthy → Pneumonia
+
+| Metric | CVAE | CycleGAN |
+|---|---|---|
+| Flip Rate | 0.026 (231/8978) | 0.146 (1314/8978) |
+| Mean P(original) | 0.313 | 0.313 |
+| Mean P(translated) | 0.311 | 0.360 |
+
+#### Pneumonia → Healthy
+
+| Metric | CVAE | CycleGAN |
+|---|---|---|
+| Flip Rate | 0.047 (2/43) | 0.070 (3/43) |
+| Mean P(original) | 0.499 | 0.499 |
+| Mean P(translated) | 0.488 | 0.482 |
+
+### Fine-tuning with data augmentation
+
+The severe class imbalance in the NIH training split means that even the frozen CheXNet oracle is pulling its discriminative signal almost entirely from the real pneumonia cases. So, we also wanted to test the hypothesis that adding synthetic healthy→pneumonia (H→P) images as extra positive examples during linear-probe training could shift the decision boundary and improve AUC.
+
+For all four experiments below we freeze the DenseNet-121 backbone of CheXNet and retrain only the binary head (1,024 → 1 linear layer, ~1K parameters). The head is optimised with Adam (LR = 1e-3), BCEWithLogitsLoss, a ReduceLROnPlateau scheduler, and early stopping (patience = 5, max 20 epochs). Threshold selection uses Youden's J on the validation set.
+
+The two generative models, **CycleGAN** and **CVAE**, contributed with H→P images, both generating 42,436 synthetic images available from then transalation H→P.
+
+For each source two variants are tested:
+
+- *All* — every synthetic H→P image from the training split is added to the augmented dataset.
+- *Flipped-only* — only images that already fool the frozen CheXNet oracle (i.e., P(pneumonia) crosses the Youden threshold after translation) are added. This acts as a quality filter, keeping only the most convincing synthetic positives.
+
+| Notebook | Synthetic source | Selection | Test AUC-ROC | Test PR-AUC | Test Acc (Youden) |
+|---|---|---|---|---|---|---|---|
+| [2.0.1](notebooks/2.0.1-finetune_chexnet_synthetic.ipynb) | CycleGAN | All H→P |  0.6863 | 0.0135 | 0.5207 |
+| [2.0.2](notebooks/2.0.2-finetune_chexnet_synthetic_only_flipped.ipynb) | CycleGAN | Flipped only | 0.6659 | 0.0132 | 0.6676 |
+| [2.1.1](notebooks/2.1.1-finetune_chexnet_synthetic_cvae.ipynb) | CVAE | All H→P | 0.6731 | 0.0074 | 0.5630 |
+| [2.1.2](notebooks/2.1.2-finetune_chexnet_synthetic_cvae_only_flipped.ipynb) | CVAE | Flipped only | 0.6699 | 0.0109 | 0.7146 |
+| [1.6](notebooks//1.6-chexnet_arbiter.ipynb) | CheXNet original |  **0.7423** | **0.0170** | 0.6296 |
+
+The fine-tuning results do not support the augmentation hypothesis: in all four variants, retraining the classification head with synthetic positives *decreased* AUC relative to the frozen CheXNet baseline (0.7423). The best fine-tuned result came from CycleGAN with all H→P images (AUC = 0.6863), yet still fell 0.056 points short of the frozen oracle. CVAE-augmented heads performed similarly, with AUC ranging from 0.6699 to 0.6731.
+
+The Flipped-only filter did not consistently help either. While it improved test accuracy in both cases (0.6676 for CycleGAN, 0.7146 for CVAE), AUC dropped compared to the All variant, suggesting the quality filter reduced dataset size without meaningfully improving the signal-to-noise ratio of the synthetic positives.
+
+The PR-AUC values — all below 0.014 — further confirm that the fine-tuned heads struggle to recover precision at meaningful recall levels. This is consistent with a failure mode where the synthetic images, despite being visually plausible, do not carry the fine-grained pathological signal that CheXNet's frozen backbone learned from 112K real chest X-rays. Adding them as extra positives may in fact distort the head's decision boundary rather than sharpen it.
+
+We also tested whether CycleGAN flipped-only images could improve a SimpleCNN trained from scratch, as an additional probe of the same augmentation hypothesis.
+
+| Model | Accuracy | ROC-AUC | PR-AUC |
+|---|---|---|---|
+| SimpleCNN + Geometric Aug | 0.4255 | 0.5790 | 0.0098 |
+| SimpleCNN + CycleGAN Aug | 0.5047 | 0.6257 | 0.0117 |
+
+Here, synthetic augmentation does yield a modest improvement over geometric augmentation alone (+0.047 AUC), suggesting that CycleGAN images carry some discriminative signal when training from scratch. However, the absolute performance remains well below any useful threshold for a clinical classifier, and the gain likely reflects the added class balance rather than the semantic quality of the synthetic images.
+
+Overall, these results reinforce the choice of the frozen CheXNet oracle as the most reliable evaluator in this project. The synthetic images generated by both CVAE and CycleGAN are better interpreted as counterfactual visualisations than as data augmentation for discriminative training.
 
 ## Discussion
 
@@ -685,21 +862,25 @@ A further challenge is the strong class imbalance in the training set, where pos
 
 ### CVAE
 
-The final CVAE implementation is a stronger baseline than the initial fully connected version because it combines convolutional encoding/decoding, skip connections, FiLM-style conditioning, and lung-mask guidance. The conditioning mechanism remains direct: disease label, normalized age, and gender are explicitly passed into the model, while the lung mask is provided as an additional input channel and used to guide reconstruction losses.
+**Model Performance Summary:**
 
-The main positive result is anatomical preservation. The skip connections help maintain global chest structure, and the saved reconstructions show that the model learns a stable mapping for the 128 x 128 lung-aware inputs. This makes the CVAE useful for producing controlled counterfactual pairs where the source image and generated image remain visually aligned.
+The CVAE demonstrated strong anatomical preservation but critically failed to generate effective counterfactuals. Quantitative results:
 
-The main limitation remains counterfactual strength. The generated images tend to be smooth and the visual changes are subtle, so qualitative inspection alone is not enough to claim that the model introduced pneumonia-related evidence. For this reason, the CVAE discussion now prioritizes classifier-facing validity metrics: flip rate and confidence change. A useful CVAE counterfactual should flip the downstream classifier to the target class and shift the target-class confidence in the expected direction.
+- **SSIM**: Mean 0.9945 (std 0.0034) — excellent structural similarity to original images.
+- **FID**: 2.8795 — generated images remain close to real-image distribution in feature space.
+- **Flip Rate (H→P)**: 0.011 (102/8,978 pairs) — only 1.1% of healthy counterfactuals flipped toward pneumonia.
+- **Flip Rate (P→H)**: 0.047 (2/43 pairs) — only 4.7% of pneumonia counterfactuals flipped toward healthy.
+- **Confidence Change (H→P)**: Δ = −0.002 (mean) — negligible increase in pneumonia confidence.
+- **Confidence Change (P→H)**: Δ = −0.011 (mean) — negligible increase in healthy confidence.
 
-Visual attribution maps were removed from the evaluation plan. Change heatmaps are still useful for visually checking whether modifications are diffuse or concentrated, especially relative to the lung fields, but they are not treated as a standalone explanation. The decisive question is whether the counterfactual changes alter classifier behavior.
+**Key Observations:**
 
-Main limitations observed in the CVAE experiment include:
+The skip-connected architecture and lung-mask-guided losses successfully preserve patient anatomy, as confirmed by high SSIM and low FID. However, this architectural strength masks a fundamental failure: generated counterfactuals are too subtle to alter classifier predictions or represent convincing pathological changes. Change heatmaps show modifications localized to lung regions, but the pixel-level differences are so minimal that they do not convey meaningful disease-related information.
 
-- **Smooth reconstructions**: generated images preserve global structure but lose fine radiological detail.
-- **Class imbalance**: the model may be biased toward healthy-looking reconstructions because healthy images dominate the selected dataset.
-- **Subtle counterfactual changes**: visual differences may be too weak to change classifier predictions consistently.
-- **Oracle dependence**: flip rate and confidence change are only as reliable as the downstream classifier used to compute them.
-- **Clinical plausibility**: classifier behavior does not replace expert validation, so generated changes should not be interpreted as clinically confirmed pneumonia evidence.
+The near-zero flip rates and negligible confidence shifts indicate the model prioritizes anatomical fidelity over counterfactual strength. Nearly 99% of healthy-to-pneumonia attempts failed to flip the classifier, suggesting the CVAE introduces imperceptible or non-semantic changes. This behavior likely stems from:
+- Class imbalance bias toward healthy reconstructions.
+- Overly aggressive spatial regularization via skip connections that preserve anatomy at the expense of disease representation.
+- VAE-inherent tendency toward smooth, conservative reconstructions.
 
 ### CycleGAN
 
@@ -725,6 +906,14 @@ This work presented a generative framework for counterfactual image generation i
 
 Remaining challenges include class imbalance, image resolution, and the need for classifier-grounded explainability evaluation. Future work will increase image resolution to 256×256, refine model architectures, augment the training set with synthetic images to improve classifier performance, and use the improved classifier to validate counterfactual generation and support explainability through difference maps and Grad-CAM comparisons.
 
+**Conclusion:**
+
+While the CVAE demonstrates solid architectural design for image reconstruction, it is **unsuitable for counterfactual generation**. A counterfactual explanation model must introduce semantically meaningful changes that (1) alter downstream model predictions, (2) appear visually convincing to domain experts, and (3) represent plausible transitions between domains. The CVAE fails on all three counts: flip rates are negligible, changes are imperceptible, and the model produces no compelling evidence of pathological transformation.
+
+**Implications for Future Work:**
+
+To achieve effective counterfactual generation, alternative approaches should be explored: (1) weaken anatomical constraints to permit stronger domain shifts, (2) employ adversarial or diffusion-based methods that prioritize visual realism and semantic change over reconstruction fidelity, or (3) combine CVAE's anatomical strengths with a separate pathology-injection module. The current CVAE architecture trades counterfactual quality for stability, making it better suited for anatomical-preserving reconstruction tasks than for medical counterfactual explanation.
+
 # Ethical considerations
 
 Although generative models and explainable AI methods have shown promising results in chest X-ray analysis, their use in medical imaging raises important ethical concerns. Previous studies have highlighted risks related to dataset bias, demographic imbalance, and the learning of spurious correlations that may affect model reliability and fairness across patient groups [13,14]. In this project, the dataset is predominantly composed of male and middle-aged patients, which may limit the model’s ability to generalize to other demographic groups. In addition, medical synthetic images and counterfactual explanations should not be interpreted as clinical ground truth or used as a substitute for professional diagnosis, since generated images may contain unrealistic or misleading findings. Another important limitation of this work is the absence of healthcare specialists to validate the generated counterfactuals. As a result, the evaluation relies mainly on classifier behavior and explainability metrics, which may not fully reflect clinical validity or diagnostic reliability. Therefore, transparency, careful evaluation, and responsible interpretation are essential when applying generative AI methods in healthcare contexts [13,15].
@@ -746,6 +935,3 @@ Although generative models and explainable AI methods have shown promising resul
 13. Herington J, McCradden MD, Creel K, Boellaard R, Jones EC, Jha AK, Rahmim A, Scott PJH, Sunderland JJ, Wahl RL, Zuehlsdorff S, Saboury B. Ethical Considerations for Artificial Intelligence in Medical Imaging: Data Collection, Development, and Evaluation. J Nucl Med. 2023 Dec 1;64(12):1848-1854. doi: 10.2967/jnumed.123.266080. PMID: 37827839; PMCID: PMC10690124.
 14. Jones, C., Castro, D.C., De Sousa Ribeiro, F. et al. A causal perspective on dataset bias in machine learning for medical imaging. Nat Mach Intell 6, 138–146 (2024). https://doi.org/10.1038/s42256-024-00797-8
 15. Rajpurkar, Pranav, et al. "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays with Deep Learning." arXiv, 2017. https://arxiv.org/abs/1711.05225
-
-
-

@@ -2,6 +2,7 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as tv_models
 from pathlib import Path
 from typing import Union
@@ -282,3 +283,49 @@ class CheXNet(nn.Module):
         """Probability of pneumonia for each image — shape (B,)."""
         logits = self.forward(x)
         return torch.sigmoid(logits[:, self.PNEUMONIA_IDX])
+
+
+class CheXNetLinearProbe(nn.Module):
+    """CheXNet-14 backbone (frozen) + new binary classification head.
+
+    Starts from CheXNet weights pretrained on ChestX-ray14, discards the
+    14-class head, and attaches a new trainable binary output (1024 → 1).
+    Only `classifier` is updated during training — the DenseNet-121 backbone
+    stays frozen. Use this for synthetic-augmented fine-tuning.
+
+    Input:  (B, 1, H, W) grayscale image in [0, 1], resized to 224×224.
+    Output: (B, 1) raw logit — apply sigmoid for probability.
+    """
+
+    _MEAN = [0.485, 0.456, 0.406]
+    _STD  = [0.229, 0.224, 0.225]
+
+    def __init__(self, chexnet_checkpoint: Union[str, Path]):
+        super().__init__()
+
+        # Load full CheXNet (14-class) to obtain pretrained backbone weights
+        chexnet = CheXNet(Path(chexnet_checkpoint))
+
+        # Borrow the pretrained DenseNet-121 feature extractor
+        self.features = chexnet.model.features
+        self.pool = nn.AdaptiveAvgPool2d(1)
+
+        # Freeze backbone — only classifier will be trained
+        for p in self.features.parameters():
+            p.requires_grad = False
+
+        # New binary head (trainable)
+        self.classifier = nn.Linear(1024, 1)
+
+        mean = torch.tensor(self._MEAN).view(1, 3, 1, 1)
+        std  = torch.tensor(self._STD).view(1, 3, 1, 1)
+        self.register_buffer("mean", mean)
+        self.register_buffer("std", std)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Returns raw logit for pneumonia — shape (B, 1)."""
+        x = x.repeat(1, 3, 1, 1)
+        x = (x - self.mean) / self.std
+        x = F.relu(self.features(x), inplace=True)
+        x = self.pool(x)
+        return self.classifier(torch.flatten(x, 1))
