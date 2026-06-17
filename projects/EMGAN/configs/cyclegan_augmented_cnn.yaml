@@ -1,0 +1,19 @@
+experiment_name: cyclegan_augmented_cnn
+
+model:
+  name: SimpleCNN_cyclegan_aug
+  dropout: 0.3
+
+data:
+  img_size: [224, 224]
+  class_balancing: pos_weight
+  generated_dir: data/generated/healthy_to_pneumonia  # CycleGAN h2p outputs used as synthetic pneumonia
+
+training:
+  batch_size: 64
+  lr: 3.0e-4
+  num_epochs: 10
+  weight_decay: 1.0e-4
+  early_stopping_patience: 5
+
+seed: 42
